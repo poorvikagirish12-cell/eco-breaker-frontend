@@ -1,0 +1,21 @@
+Role: Reader (General Public)
+Page: /feed (The main landing page showing articles)
+
+Component: <TopNavbar /> - Contains the logo, role switcher, user profile summary, and a "Write a Post" button.
+
+Component: <FeedContainer /> - The responsive grid layout that handles GET requests to /api/feed for fetching the contrarian recommended feed, as well as GET requests to /api/articles?search={keyword}, /api/articles?tag={tag_id}, and /api/articles?sort=trending.
+
+Component: <ArticleCard /> - A Shadcn Card showing the title, author, view count, and tag badges. Crucial: Clicking this card opens the article view and silently fires the POST /api/interactions/view endpoint with the simulated view duration for the algorithm to learn! Includes buttons to Like (POST /api/interactions/like) and Save (POST /api/interactions/save) the article.
+
+Component: <ArticleViewModal /> - A Shadcn Dialog displaying the full article title and body, tracking the active view duration (seconds) before logging the view interaction.
+
+Component: <PreferencesPanel /> - A section displaying current tag affinity scores (GET /api/users/me/preferences) and reading history (GET /api/users/me/history), with a "Reset Preferences" button (DELETE /api/users/me/preferences) and "Clear Reading History" button (DELETE /api/users/me/history).
+
+Role: Author (Content Creator)
+Page: /write (The publishing dashboard)
+
+Component: <TopNavbar /> - (Reused).
+
+Component: <AuthorDashboard /> - Displays a list of the author's own articles (GET /api/authors/me/articles) categorized by status (Draft vs Published), with controls to publish (PATCH /api/articles/{id}/publish), unpublish (PATCH /api/articles/{id}/unpublish), and delete (DELETE /api/articles/{id}).
+
+Component: <PublishForm /> - A Shadcn Form with input elements for Title, Content, and Tags selection. Wired to POST /api/articles to create drafts, and supports updating draft content via PUT /api/articles/{id}.
