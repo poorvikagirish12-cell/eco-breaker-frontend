@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { TopNavbar } from "@/components/TopNavbar";
 import { ArticleCard } from "@/components/ArticleCard";
 import { ChatPanel } from "@/components/ChatPanel";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -38,7 +37,6 @@ interface HistoryItem {
 }
 
 export default function FeedPage() {
-  const [role, setRole] = useState<"reader" | "author" | null>(null);
   const [articles, setArticles] = useState<Article[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [preferences, setPreferences] = useState<TagAffinity[]>([]);
@@ -50,22 +48,6 @@ export default function FeedPage() {
   const [selectedTag, setSelectedTag] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<"newest" | "trending">("newest");
   const [isRefreshing, setIsRefreshing] = useState(false);
-
-  // Sync role state
-  const syncRole = useCallback(() => {
-    if (typeof window !== "undefined") {
-      const savedRole = localStorage.getItem("user-role") as "reader" | "author";
-      setRole(savedRole || "reader");
-    }
-  }, []);
-
-  useEffect(() => {
-    syncRole();
-    if (typeof window !== "undefined") {
-      window.addEventListener("role-change", syncRole);
-      return () => window.removeEventListener("role-change", syncRole);
-    }
-  }, [syncRole]);
 
   // Load Tags, Preferences & Reading History
   const loadSidebarData = useCallback(async () => {
