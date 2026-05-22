@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { BASE_URL } from "@/lib/api";
 
 export function TopNavbar() {
   const pathname = usePathname();
@@ -19,7 +20,7 @@ export function TopNavbar() {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await fetch(`${BASE_URL}/api/auth/logout`, { method: "POST" });
     } catch (_) {}
     // Clear session
     localStorage.removeItem("auth-token");

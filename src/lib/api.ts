@@ -5,7 +5,7 @@
 // To switch backends: just change NEXT_PUBLIC_API_URL in .env.local
 // ============================================================
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+export const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://eco-breaker-backend-1.onrender.com";
 
 // ── Core fetch wrapper ──────────────────────────────────────
 async function request<T>(

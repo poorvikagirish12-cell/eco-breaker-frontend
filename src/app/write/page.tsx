@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { BASE_URL } from "@/lib/api";
 
 interface Article {
   article_id: number;
@@ -38,8 +39,8 @@ export default function WritePage() {
   const loadData = useCallback(async () => {
     try {
       const [artRes, tagsRes] = await Promise.all([
-        fetch("/api/authors/me/articles"),
-        fetch("/api/tags"),
+        fetch(`${BASE_URL}/api/authors/me/articles`),
+        fetch(`${BASE_URL}/api/tags`),
       ]);
 
       if (artRes.ok) setArticles(await artRes.json());
@@ -62,7 +63,7 @@ export default function WritePage() {
     setMessage(null);
 
     try {
-      const res = await fetch("/api/articles", {
+      const res = await fetch(`${BASE_URL}/api/articles`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, content }),
@@ -73,7 +74,7 @@ export default function WritePage() {
 
         // Assign tags
         for (const tagId of selectedTags) {
-          await fetch(`/api/articles/${newArt.article_id}/tags`, {
+          await fetch(`${BASE_URL}/api/articles/${newArt.article_id}/tags`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ tag_id: tagId }),
@@ -97,7 +98,7 @@ export default function WritePage() {
 
   const handlePublish = async (articleId: number) => {
     try {
-      await fetch(`/api/articles/${articleId}/publish`, { method: "PATCH" });
+      await fetch(`${BASE_URL}/api/articles/${articleId}/publish`, { method: "PATCH" });
       loadData();
     } catch (err) {
       console.error("Publish error:", err);
@@ -106,7 +107,7 @@ export default function WritePage() {
 
   const handleUnpublish = async (articleId: number) => {
     try {
-      await fetch(`/api/articles/${articleId}/unpublish`, { method: "PATCH" });
+      await fetch(`${BASE_URL}/api/articles/${articleId}/unpublish`, { method: "PATCH" });
       loadData();
     } catch (err) {
       console.error("Unpublish error:", err);
@@ -116,7 +117,7 @@ export default function WritePage() {
   const handleDelete = async (articleId: number) => {
     if (!confirm("Permanently delete this post?")) return;
     try {
-      await fetch(`/api/articles/${articleId}`, { method: "DELETE" });
+      await fetch(`${BASE_URL}/api/articles/${articleId}`, { method: "DELETE" });
       loadData();
     } catch (err) {
       console.error("Delete error:", err);

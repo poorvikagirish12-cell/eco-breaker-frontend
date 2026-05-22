@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { BASE_URL } from "@/lib/api";
 
 interface Tag {
   tag_id: number;
@@ -57,7 +58,7 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
       
       // Silently log view interaction to backend
       try {
-        await fetch("/api/interactions/view", {
+        await fetch(`${BASE_URL}/api/interactions/view`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ view_duration_seconds: durationSeconds }),
@@ -77,10 +78,10 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
     setIsLoading(true);
     try {
       if (isLiked) {
-        await fetch(`/api/interactions/like/${article.article_id}`, { method: "DELETE" });
+        await fetch(`${BASE_URL}/api/interactions/like/${article.article_id}`, { method: "DELETE" });
         setIsLiked(false);
       } else {
-        await fetch("/api/interactions/like", {
+        await fetch(`${BASE_URL}/api/interactions/like`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           // Mock article ID passed in query/body as mock endpoint doesn't strictly check
@@ -100,10 +101,10 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
     setIsLoading(true);
     try {
       if (isSaved) {
-        await fetch(`/api/interactions/save/${article.article_id}`, { method: "DELETE" });
+        await fetch(`${BASE_URL}/api/interactions/save/${article.article_id}`, { method: "DELETE" });
         setIsSaved(false);
       } else {
-        await fetch("/api/interactions/save", {
+        await fetch(`${BASE_URL}/api/interactions/save`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
         });

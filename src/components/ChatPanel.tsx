@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { BASE_URL } from "@/lib/api";
 
 interface Message {
   sender: "user" | "bot";
@@ -30,10 +31,10 @@ export function ChatPanel() {
 
   const fetchProfileStats = async () => {
     try {
-      const prefRes = await fetch("/api/users/me/preferences");
+      const prefRes = await fetch(`${BASE_URL}/api/users/me/preferences`);
       const prefData = await prefRes.json();
       
-      const histRes = await fetch("/api/users/me/history");
+      const histRes = await fetch(`${BASE_URL}/api/users/me/history`);
       const histData = await histRes.json();
 
       return { preferences: prefData, history: histData };
@@ -75,8 +76,8 @@ export function ChatPanel() {
         botResponse = "The Contrarian routing algorithm operates in three steps: 1) Find your top 5 tags with the highest affinity scores. 2) Filter articles that DO NOT contain these tags. 3) Deliver the most recent unread articles matching this filter. This effectively bursts echo chambers!";
       } else if (normalizedText.includes("reset") || normalizedText.includes("clear") || normalizedText.includes("delete")) {
         try {
-          await fetch("/api/users/me/preferences", { method: "DELETE" });
-          await fetch("/api/users/me/history", { method: "DELETE" });
+          await fetch(`${BASE_URL}/api/users/me/preferences`, { method: "DELETE" });
+          await fetch(`${BASE_URL}/api/users/me/history`, { method: "DELETE" });
           botResponse = "I have successfully cleared your reading history and reset your tag affinity scores to zero. Your feed will now return to the global default baseline until you read more articles.";
           // Dispatch role change to trigger feed updates
           window.dispatchEvent(new Event("role-change"));

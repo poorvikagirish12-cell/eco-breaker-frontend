@@ -7,6 +7,7 @@ import { ChatPanel } from "@/components/ChatPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BASE_URL } from "@/lib/api";
 
 interface Tag {
   tag_id: number;
@@ -52,19 +53,19 @@ export default function FeedPage() {
   // Load Tags, Preferences & Reading History
   const loadSidebarData = useCallback(async () => {
     try {
-      const tagsRes = await fetch("/api/tags");
+      const tagsRes = await fetch(`${BASE_URL}/api/tags`);
       if (tagsRes.ok) {
         const tagsData = await tagsRes.json();
         setTags(tagsData);
       }
 
-      const prefRes = await fetch("/api/users/me/preferences");
+      const prefRes = await fetch(`${BASE_URL}/api/users/me/preferences`);
       if (prefRes.ok) {
         const prefData = await prefRes.json();
         setPreferences(prefData);
       }
 
-      const histRes = await fetch("/api/users/me/history");
+      const histRes = await fetch(`${BASE_URL}/api/users/me/history`);
       if (histRes.ok) {
         const histData = await histRes.json();
         setHistory(histData);
@@ -78,7 +79,7 @@ export default function FeedPage() {
   const loadArticles = useCallback(async () => {
     setIsRefreshing(true);
     try {
-      let endpoint = "/api/feed";
+      let endpoint = `${BASE_URL}/api/feed`;
       
       if (activeTab === "global") {
         // Construct query parameters for global filtering
@@ -87,7 +88,7 @@ export default function FeedPage() {
         if (selectedTag) params.append("tag", selectedTag.toString());
         if (sortBy === "trending") params.append("sort", "trending");
         
-        endpoint = `/api/articles?${params.toString()}`;
+        endpoint = `${BASE_URL}/api/articles?${params.toString()}`;
       }
 
       const res = await fetch(endpoint);
@@ -125,8 +126,8 @@ export default function FeedPage() {
   // Reset Preferences Handler
   const handleResetPreferences = async () => {
     try {
-      await fetch("/api/users/me/preferences", { method: "DELETE" });
-      await fetch("/api/users/me/history", { method: "DELETE" });
+      await fetch(`${BASE_URL}/api/users/me/preferences`, { method: "DELETE" });
+      await fetch(`${BASE_URL}/api/users/me/history`, { method: "DELETE" });
       loadArticles();
       loadSidebarData();
     } catch (err) {

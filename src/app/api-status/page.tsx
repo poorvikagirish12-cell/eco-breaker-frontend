@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { TopNavbar } from "@/components/TopNavbar";
-import { health } from "@/lib/api";
+import { health, BASE_URL } from "@/lib/api";
 
 interface EndpointCheck {
   name: string;
@@ -40,7 +40,7 @@ export default function ApiStatusPage() {
     // Check backend root first
     try {
       const start = Date.now();
-      const res = await fetch("http://127.0.0.1:8000/");
+      const res = await fetch(BASE_URL + "/");
       const latency = Date.now() - start;
       setBackendOnline(res.ok);
       if (!res.ok) {
@@ -77,7 +77,8 @@ export default function ApiStatusPage() {
             opts.body = JSON.stringify({ view_duration_seconds: 5 });
         }
 
-        const res = await fetch(ep.url, opts);
+        const fetchUrl = ep.url.startsWith("/api") ? `${BASE_URL}${ep.url}` : ep.url;
+        const res = await fetch(fetchUrl, opts);
         const latency = Date.now() - start;
         // 4xx/5xx are still "reachable" — endpoint exists and backend responded
         const reachable = res.status < 500;
@@ -117,7 +118,7 @@ export default function ApiStatusPage() {
             🔌 API Connection Status
           </h1>
           <p className="text-slate-400 text-sm">
-            Live check: Next.js (port 3000) → FastAPI backend (port 8000)
+            Live check: Frontend → Backend ({BASE_URL})
           </p>
         </div>
 
@@ -143,9 +144,9 @@ export default function ApiStatusPage() {
                   ? "Checking connection..."
                   : backendOnline
                   ? `✅ Backend Connected — ${okCount}/${checks.length} endpoints OK`
-                  : "❌ Backend Offline — Start FastAPI on port 8000"}
+                  : `❌ Backend Offline — Could not connect to ${BASE_URL}`}
               </p>
-              {!backendOnline && backendOnline !== null && (
+              {!backendOnline && backendOnline !== null && BASE_URL.includes("localhost") && (
                 <p className="text-xs text-slate-500 mt-0.5 font-mono">
                   Run: <span className="text-rose-400">uvicorn main:app --reload --port 8000</span> in task 4 folder
                 </p>
@@ -217,7 +218,7 @@ export default function ApiStatusPage() {
         </div>
 
         {/* Instructions if offline */}
-        {backendOnline === false && (
+        {backendOnline === false && BASE_URL.includes("localhost") && (
           <div className="mt-6 p-5 bg-rose-500/5 border border-rose-500/20 rounded-2xl space-y-3">
             <h3 className="text-sm font-bold text-rose-400">🛠️ How to start the backend</h3>
             <ol className="space-y-2 text-sm text-slate-400">
