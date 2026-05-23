@@ -44,9 +44,7 @@ export function TopNavbar() {
         {/* Logo + Nav */}
         <div className="flex items-center gap-6">
           <Link href="/feed" className="flex items-center space-x-2" id="nav-logo">
-            <div className="w-7 h-7 bg-gradient-to-tr from-sky-500 to-indigo-500 rounded-lg flex items-center justify-center shadow-md shadow-indigo-500/30">
-              <span className="text-white font-black text-xs">E</span>
-            </div>
+            <img src="/logo.png" className="w-7 h-7 rounded-lg shadow-md object-cover" alt="EchoBreaker Logo" />
             <span className="font-bold text-xl sm:text-2xl bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent tracking-tight">
               EchoBreaker
             </span>

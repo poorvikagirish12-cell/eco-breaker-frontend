@@ -67,9 +67,7 @@ export default function RegisterPage() {
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 mb-4">
-              <div className="w-10 h-10 bg-gradient-to-tr from-sky-500 to-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/30">
-                <span className="text-white font-black text-lg">E</span>
-              </div>
+              <img src="/logo.png" className="w-10 h-10 rounded-xl shadow-lg object-cover" alt="EchoBreaker Logo" />
               <span className="text-2xl font-black bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
                 EchoBreaker
               </span>
