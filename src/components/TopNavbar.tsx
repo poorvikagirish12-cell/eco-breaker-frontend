@@ -49,16 +49,14 @@ export function TopNavbar() {
               <div className="absolute inset-0 rounded-xl bg-sky-400/20 opacity-0 group-hover:opacity-100 blur-sm transition-all duration-300" />
             </div>
             <span
-              className="font-extrabold text-xl sm:text-2xl tracking-tight select-none"
+              className="brand-logo select-none"
               style={{
-                fontFamily: "var(--font-serif)",
-                background: "linear-gradient(135deg, #38bdf8 0%, #818cf8 40%, #c084fc 70%, #38bdf8 100%)",
+                background: "linear-gradient(135deg, #00b3ff 0%, #818cf8 50%, #c084fc 100%)",
                 backgroundSize: "200% auto",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
                 animation: "shimmer 4s linear infinite",
-                letterSpacing: "-0.02em",
               }}
             >
               EchoBreaker

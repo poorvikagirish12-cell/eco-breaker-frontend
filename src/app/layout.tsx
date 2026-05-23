@@ -1,17 +1,23 @@
 import type { Metadata } from "next";
-import { DM_Sans, Syne } from "next/font/google";
+import { Dancing_Script, Lora, Montserrat } from "next/font/google";
 import "./globals.css";
 
-const dmSans = DM_Sans({
+const dancingScript = Dancing_Script({
   subsets: ["latin"],
-  variable: "--font-sans",
-  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-logo",
+  weight: ["600", "700"],
 });
 
-const syne = Syne({
+const lora = Lora({
   subsets: ["latin"],
-  variable: "--font-serif",
-  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-heading",
+  weight: ["400", "500", "600"],
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  weight: ["300", "400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -27,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${dmSans.variable} ${syne.variable} font-sans antialiased bg-slate-950 text-slate-50`}
+        className={`${dancingScript.variable} ${lora.variable} ${montserrat.variable} font-sans antialiased bg-slate-950 text-slate-50`}
       >
         {children}
       </body>
