@@ -130,5 +130,11 @@
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-serif), serif;
+    letter-spacing: -0.02em;
   }
+}
+
+@keyframes shimmer {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
 }

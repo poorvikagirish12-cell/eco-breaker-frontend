@@ -43,9 +43,24 @@ export function TopNavbar() {
 
         {/* Logo + Nav */}
         <div className="flex items-center gap-6">
-          <Link href="/feed" className="flex items-center space-x-2" id="nav-logo">
-            <img src="/logo.png" className="w-7 h-7 rounded-lg shadow-md object-cover" alt="EchoBreaker Logo" />
-            <span className="font-bold text-xl sm:text-2xl bg-gradient-to-r from-sky-400 to-indigo-500 bg-clip-text text-transparent tracking-tight">
+          <Link href="/feed" className="flex items-center space-x-2.5 group" id="nav-logo">
+            <div className="relative">
+              <img src="/logo.png" className="w-8 h-8 rounded-xl shadow-lg object-cover ring-1 ring-white/10 group-hover:ring-sky-400/40 transition-all duration-300" alt="EchoBreaker Logo" />
+              <div className="absolute inset-0 rounded-xl bg-sky-400/20 opacity-0 group-hover:opacity-100 blur-sm transition-all duration-300" />
+            </div>
+            <span
+              className="font-extrabold text-xl sm:text-2xl tracking-tight select-none"
+              style={{
+                fontFamily: "var(--font-serif)",
+                background: "linear-gradient(135deg, #38bdf8 0%, #818cf8 40%, #c084fc 70%, #38bdf8 100%)",
+                backgroundSize: "200% auto",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                animation: "shimmer 4s linear infinite",
+                letterSpacing: "-0.02em",
+              }}
+            >
               EchoBreaker
             </span>
           </Link>

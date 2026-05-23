@@ -1,15 +1,17 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Playfair_Display } from "next/font/google";
+import { DM_Sans, Syne } from "next/font/google";
 import "./globals.css";
 
-const plusJakartaSans = Plus_Jakarta_Sans({
+const dmSans = DM_Sans({
   subsets: ["latin"],
   variable: "--font-sans",
+  weight: ["300", "400", "500", "600", "700"],
 });
 
-const playfairDisplay = Playfair_Display({
+const syne = Syne({
   subsets: ["latin"],
   variable: "--font-serif",
+  weight: ["400", "500", "600", "700", "800"],
 });
 
 export const metadata: Metadata = {
@@ -25,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${plusJakartaSans.variable} ${playfairDisplay.variable} font-sans antialiased bg-slate-950 text-slate-50`}
+        className={`${dmSans.variable} ${syne.variable} font-sans antialiased bg-slate-950 text-slate-50`}
       >
         {children}
       </body>
