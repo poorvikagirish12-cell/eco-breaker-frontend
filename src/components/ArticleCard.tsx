@@ -1,9 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { BASE_URL } from "@/lib/api";
 
 interface Tag {
@@ -16,6 +13,8 @@ interface Article {
   title: string;
   content?: string;
   author_id: number;
+  author_name?: string;
+  is_verified_author?: boolean;
   view_count: number;
   status: string;
   published_at?: string;
@@ -27,331 +26,262 @@ interface ArticleCardProps {
   onInteractionChange?: () => void;
 }
 
-// Custom botanical tech leaf SVG
-const BotanicalSVG = () => (
-  <svg className="w-full h-28 text-[#03e38c] opacity-35 group-hover:opacity-55 transition-opacity" viewBox="0 0 200 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M100 10 V90" stroke="currentColor" strokeWidth="2" strokeDasharray="3 3" />
-    <path d="M100 25 C130 20, 140 40, 100 60" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M100 45 C70 40, 60 60, 100 75" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M100 25 L125 15" stroke="currentColor" strokeWidth="1" />
-    <path d="M100 45 L75 35" stroke="currentColor" strokeWidth="1" />
-    <path d="M100 60 L130 52" stroke="currentColor" strokeWidth="1" />
-    <path d="M100 70 L70 65" stroke="currentColor" strokeWidth="1" />
-    <circle cx="125" cy="15" r="2.5" fill="currentColor" />
-    <circle cx="75" cy="35" r="2.5" fill="currentColor" />
-    <circle cx="130" cy="52" r="2.5" fill="currentColor" />
-    <circle cx="70" cy="65" r="2.5" fill="currentColor" />
-  </svg>
-);
+/* Tag colour helper */
+function tagClass(name: string) {
+  const n = name.toLowerCase();
+  if (n.includes("tech") || n.includes("cyber")) return "tag-tech";
+  if (n.includes("polit")) return "tag-politics";
+  if (n.includes("econ")) return "tag-economics";
+  return "tag-default";
+}
 
-// Custom critical fracture SVG
-const FractureSVG = () => (
-  <svg className="w-full h-28 text-[#ff007f] opacity-35 group-hover:opacity-55 transition-opacity" viewBox="0 0 200 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M20 20 L80 50 L110 30 L180 80" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M80 50 L90 85 L140 60 L180 80" stroke="currentColor" strokeWidth="1" />
-    <path d="M50 70 L80 50" stroke="currentColor" strokeWidth="1" />
-    <circle cx="20" cy="20" r="3" fill="currentColor" />
-    <circle cx="80" cy="50" r="4.5" fill="currentColor" className="animate-pulse" />
-    <circle cx="80" cy="50" r="2.5" fill="currentColor" />
-    <circle cx="110" cy="30" r="3" fill="currentColor" />
-    <circle cx="180" cy="80" r="3" fill="currentColor" />
-    <circle cx="90" cy="85" r="2" fill="currentColor" />
-    <circle cx="140" cy="60" r="3" fill="currentColor" />
-    <circle cx="50" cy="70" r="2" fill="currentColor" />
-  </svg>
-);
+/* Relative date */
+function relativeDate(dateStr?: string) {
+  if (!dateStr) return "Unknown date";
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  if (diff < 30) return `${diff} days ago`;
+  if (diff < 365) return `${Math.floor(diff / 30)} months ago`;
+  return `${Math.floor(diff / 365)} years ago`;
+}
 
-// Custom data grid wireframe SVG
-const GridSVG = () => (
-  <svg className="w-full h-28 text-[#00e5ff] opacity-25 group-hover:opacity-45 transition-opacity" viewBox="0 0 200 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M10 90 L100 10 L190 90" stroke="currentColor" strokeWidth="1" />
-    <path d="M40 90 L100 10 L160 90" stroke="currentColor" strokeWidth="1" />
-    <path d="M70 90 L100 10 L130 90" stroke="currentColor" strokeWidth="1" />
-    <path d="M100 90 L100 10" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M70 30 H130" stroke="currentColor" strokeWidth="1" />
-    <path d="M55 50 H145" stroke="currentColor" strokeWidth="1" />
-    <path d="M35 70 H165" stroke="currentColor" strokeWidth="1" />
-    <path d="M10 90 H190" stroke="currentColor" strokeWidth="1.5" />
-  </svg>
-);
+/* Read time estimate */
+function readTime(content?: string) {
+  if (!content) return "1 min read";
+  const words = content.trim().split(/\s+/).length;
+  return `${Math.max(1, Math.ceil(words / 200))} min read`;
+}
 
 export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
-  const [tiltStyle, setTiltStyle] = useState<React.CSSProperties>({});
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const card = e.currentTarget;
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    const xc = rect.width / 2;
-    const yc = rect.height / 2;
-    
-    const rotateX = -(y - yc) / 15;
-    const rotateY = (x - xc) / 15;
-    
-    setTiltStyle({
-      transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.01, 1.01, 1.01)`,
-      transition: "transform 0.05s ease"
-    });
-  };
+  const tags = article.tags?.length ? article.tags : [{ tag_id: 0, name: "General" }];
+  const primaryTag = tags[0];
+  const excerpt = article.content
+    ? article.content.slice(0, 140) + (article.content.length > 140 ? "…" : "")
+    : "No preview available for this article.";
+  const authorDisplay = article.author_name ?? `User #${article.author_id}`;
 
-  const handleMouseLeave = () => {
-    setTiltStyle({
-      transform: "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)",
-      transition: "transform 0.4s ease"
-    });
-  };
-
-  // Content fallback excerpt
-  const contentExcerpt = article.content 
-    ? article.content.substring(0, 120) + "..." 
-    : "Biometric and environmental anomalies detected in localized synthesis fractures. Real-time logging sequence initiated.";
-
-  // Safe tag selection
-  const tags = article.tags || [
-    { tag_id: 1, name: "Synthesis" }
-  ];
-
-  // Helper to categorize tag colors and wireframe layouts
-  const getCategoryTheme = (tagName: string) => {
-    const name = tagName.toLowerCase();
-    if (name.includes("anomaly") || name.includes("critical") || name.includes("breach") || name.includes("fail") || name.includes("politics")) {
-      return {
-        badgeText: "CRITICAL",
-        badgeStyle: "bg-[rgba(255,0,127,0.1)] text-[#ff007f] border-[#ff007f]",
-        borderStyle: "border-[#ff007f]/30 hover:border-[#ff007f]/70",
-        shadowStyle: "hover:shadow-[0_0_15px_rgba(255,0,127,0.15)]",
-        graphic: <FractureSVG />
-      };
-    }
-    if (name.includes("biometrics") || name.includes("tech") || name.includes("cyber")) {
-      return {
-        badgeText: "BIOMETRIC",
-        badgeStyle: "bg-[rgba(0,229,255,0.1)] text-[#00e5ff] border-[#00e5ff]",
-        borderStyle: "border-[#00e5ff]/30 hover:border-[#00e5ff]/70",
-        shadowStyle: "hover:shadow-[0_0_15px_rgba(0,229,255,0.15)]",
-        graphic: <GridSVG />
-      };
-    }
-    return {
-      badgeText: "SYNTHESIS",
-      badgeStyle: "bg-[rgba(3,227,140,0.1)] text-[#03e38c] border-[#03e38c]",
-      borderStyle: "border-[rgba(3,227,140,0.2)] hover:border-[#03e38c]/70",
-      shadowStyle: "hover:shadow-[0_0_15px_rgba(3,227,140,0.15)]",
-      graphic: <BotanicalSVG />
-    };
-  };
-
-  const primaryTagName = tags[0]?.name || "Synthesis";
-  const theme = getCategoryTheme(primaryTagName);
-
-  // Dynamic sci-fi T-MINUS countdown age
-  const formatCountdown = (dateString?: string) => {
-    if (!dateString) return "T-MINUS 24D";
-    const date = new Date(dateString);
-    const diffTime = Math.abs(new Date().getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return `T-MINUS ${diffDays}D`;
-  };
-
-  // Auth helper
-  const getAuthHeaders = () => {
+  const getHeaders = (): Record<string, string> => {
     const token = typeof window !== "undefined" ? localStorage.getItem("auth-token") : null;
-    return {
-      "Content-Type": "application/json",
-      ...(token ? { "Authorization": `Bearer ${token}` } : {})
-    };
+    const h: Record<string, string> = { "Content-Type": "application/json" };
+    if (token) h["Authorization"] = `Bearer ${token}`;
+    return h;
   };
 
-  const handleOpen = () => {
+  const openArticle = () => {
     setIsOpen(true);
     setStartTime(Date.now());
   };
 
-  const handleClose = async () => {
+  const closeArticle = async () => {
     setIsOpen(false);
     if (startTime) {
-      const durationSeconds = Math.round((Date.now() - startTime) / 1000) || 1;
+      const secs = Math.max(1, Math.round((Date.now() - startTime) / 1000));
       try {
         await fetch(`${BASE_URL}/api/interactions/view?article_id=${article.article_id}`, {
           method: "POST",
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ view_duration_seconds: durationSeconds }),
+          headers: getHeaders(),
+          body: JSON.stringify({ view_duration_seconds: secs }),
         });
-        if (onInteractionChange) onInteractionChange();
-      } catch (err) {
-        console.error("View log error:", err);
-      }
+        onInteractionChange?.();
+      } catch {}
     }
   };
 
   const handleLike = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsLoading(true);
+    setLoading(true);
     try {
       if (isLiked) {
         await fetch(`${BASE_URL}/api/interactions/like/${article.article_id}`, {
-          method: "DELETE",
-          headers: getAuthHeaders()
+          method: "DELETE", headers: getHeaders(),
         });
         setIsLiked(false);
       } else {
         await fetch(`${BASE_URL}/api/interactions/like?article_id=${article.article_id}`, {
-          method: "POST",
-          headers: getAuthHeaders()
+          method: "POST", headers: getHeaders(),
         });
         setIsLiked(true);
       }
-      if (onInteractionChange) onInteractionChange();
-    } catch (err) {
-      console.error("Like error:", err);
-    } finally {
-      setIsLoading(false);
-    }
+      onInteractionChange?.();
+    } catch {} finally { setLoading(false); }
   };
 
   const handleSave = async (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsLoading(true);
+    setLoading(true);
     try {
       if (isSaved) {
         await fetch(`${BASE_URL}/api/interactions/save/${article.article_id}`, {
-          method: "DELETE",
-          headers: getAuthHeaders()
+          method: "DELETE", headers: getHeaders(),
         });
         setIsSaved(false);
       } else {
         await fetch(`${BASE_URL}/api/interactions/save?article_id=${article.article_id}`, {
-          method: "POST",
-          headers: getAuthHeaders()
+          method: "POST", headers: getHeaders(),
         });
         setIsSaved(true);
       }
-      if (onInteractionChange) onInteractionChange();
-    } catch (err) {
-      console.error("Save error:", err);
-    } finally {
-      setIsLoading(false);
-    }
+      onInteractionChange?.();
+    } catch {} finally { setLoading(false); }
   };
 
   return (
     <>
-      <div 
-        onClick={handleOpen}
+      {/* ── Card ── */}
+      <div
         id={`article-card-${article.article_id}`}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        style={tiltStyle}
-        className={`group relative overflow-hidden bg-[#0c120f] border rounded-sm cursor-pointer flex flex-col justify-between transition-all duration-300 ${theme.borderStyle} ${theme.shadowStyle}`}
+        onClick={openArticle}
+        className="group relative flex flex-col bg-[#0f172a] border border-[rgba(56,189,248,0.1)] rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-[rgba(56,189,248,0.3)] hover:shadow-[0_8px_32px_rgba(56,189,248,0.08)] hover:-translate-y-0.5"
       >
-        {/* Glow decoration */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#070d0b]/80 pointer-events-none z-10" />
+        {/* Top colour strip based on tag */}
+        <div className={`h-1 w-full ${
+          tagClass(primaryTag.name) === "tag-tech" ? "bg-gradient-to-r from-[#38bdf8] to-[#3b82f6]" :
+          tagClass(primaryTag.name) === "tag-politics" ? "bg-gradient-to-r from-[#a78bfa] to-[#7c3aed]" :
+          tagClass(primaryTag.name) === "tag-economics" ? "bg-gradient-to-r from-[#34d399] to-[#059669]" :
+          "bg-gradient-to-r from-[#818cf8] to-[#4f46e5]"
+        }`} />
 
-        {/* Top Graphic Panel */}
-        <div className="relative w-full h-32 bg-[#09100d] border-b border-[rgba(3,227,140,0.1)] flex items-center justify-center overflow-hidden">
-          {theme.graphic}
-          
-          {/* Category Badge */}
-          <span className={`absolute top-3 left-3 text-[9px] font-bold px-2 py-0.5 rounded-sm border uppercase tracking-widest terminal-font z-20 ${theme.badgeStyle}`}>
-            {theme.badgeText}
-          </span>
-        </div>
+        {/* Body */}
+        <div className="p-5 flex flex-col flex-grow gap-3">
+          {/* Tags */}
+          <div className="flex flex-wrap gap-1.5">
+            {tags.slice(0, 3).map((tag) => (
+              <span key={tag.tag_id} className={`text-[10px] font-semibold italic px-2 py-0.5 rounded-full ${tagClass(tag.name)}`}>
+                {tag.name}
+              </span>
+            ))}
+          </div>
 
-        {/* Card Body */}
-        <div className="p-4 flex-grow relative z-20 space-y-2">
-          <h3 className="text-base font-bold text-[#c9d1c9] group-hover:text-[#03e38c] transition-colors line-clamp-2">
+          {/* Title */}
+          <h3 className="text-[15px] font-bold italic leading-snug text-[#e2e8f0] group-hover:text-[#38bdf8] transition-colors line-clamp-2">
             {article.title}
           </h3>
-          <p className="text-xs text-[#708078] line-clamp-3 leading-relaxed">
-            {contentExcerpt}
+
+          {/* Excerpt */}
+          <p className="text-sm italic text-[#64748b] line-clamp-3 leading-relaxed flex-grow">
+            {excerpt}
           </p>
-          <div className="flex items-center justify-between pt-1 text-[10px] text-[#4d5e56] terminal-font">
-            <span>SEC_ID: 0{article.author_id}</span>
-            <span>VIEWS: {article.view_count}</span>
+
+          {/* Meta */}
+          <div className="flex items-center justify-between pt-2 border-t border-[rgba(56,189,248,0.07)]">
+            {/* Author */}
+            <div className="flex items-center gap-1.5 min-w-0">
+              <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] font-black text-[#020617]"
+                style={{ background: "linear-gradient(135deg,#38bdf8,#818cf8)" }}>
+                {authorDisplay[0]?.toUpperCase() ?? "U"}
+              </div>
+              <span className="text-xs italic text-[#94a3b8] truncate max-w-[100px]">{authorDisplay}</span>
+              {article.is_verified_author && (
+                <svg className="w-3.5 h-3.5 text-[#38bdf8] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              )}
+            </div>
+
+            {/* Right side: read time + actions */}
+            <div className="flex items-center gap-3 flex-shrink-0">
+              <span className="text-[10px] italic text-[#475569]">{readTime(article.content)}</span>
+              <button onClick={handleLike} disabled={loading}
+                className={`p-1.5 rounded-lg transition-all hover:bg-[#1e293b] ${isLiked ? "text-rose-400" : "text-[#475569] hover:text-[#e2e8f0]"}`}
+                title="Like">
+                <svg className="w-3.5 h-3.5" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                </svg>
+              </button>
+              <button onClick={handleSave} disabled={loading}
+                className={`p-1.5 rounded-lg transition-all hover:bg-[#1e293b] ${isSaved ? "text-[#38bdf8]" : "text-[#475569] hover:text-[#e2e8f0]"}`}
+                title="Save">
+                <svg className="w-3.5 h-3.5" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                </svg>
+              </button>
+            </div>
           </div>
-        </div>
 
-        {/* Card Footer */}
-        <div className="p-3 border-t border-[rgba(3,227,140,0.1)] bg-[#09100d]/50 flex items-center justify-between relative z-20 terminal-font">
-          <span className="text-[10px] text-[#708078] font-bold tracking-wider flex items-center gap-1.5">
-            <svg className="w-3.5 h-3.5 text-[#03e38c]/70" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {formatCountdown(article.published_at)}
-          </span>
-
-          <div className="flex items-center gap-2">
-            {/* Quick Interactions */}
-            <button
-              onClick={handleLike}
-              disabled={isLoading}
-              className={`p-1.5 rounded transition-all hover:bg-slate-900 ${
-                isLiked ? "text-[#ff007f]" : "text-[#4d5e56] hover:text-[#c9d1c9]"
-              }`}
-            >
-              <svg className="w-3.5 h-3.5" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-              </svg>
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={isLoading}
-              className={`p-1.5 rounded transition-all hover:bg-slate-900 ${
-                isSaved ? "text-[#00e5ff]" : "text-[#4d5e56] hover:text-[#c9d1c9]"
-              }`}
-            >
-              <svg className="w-3.5 h-3.5" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-              </svg>
-            </button>
-
-            {/* Mockup DECRYPT button */}
-            <span className="text-[10px] font-bold text-[#ff007f] tracking-widest uppercase hover:underline ml-1 pl-2 border-l border-[rgba(3,227,140,0.15)]">
-              DECRYPT +
-            </span>
+          {/* Date + views */}
+          <div className="flex items-center justify-between text-[10px] italic text-[#475569]">
+            <span>{relativeDate(article.published_at)}</span>
+            <span>{article.view_count.toLocaleString()} views</span>
           </div>
         </div>
       </div>
 
-      {/* Detail Dialog Popup */}
-      <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
-        <DialogContent className="max-w-2xl bg-[#0b120f] border border-[rgba(3,227,140,0.25)] text-[#c9d1c9] rounded-sm terminal-font">
-          <DialogHeader>
-            <div className="flex flex-wrap gap-1.5 mb-2">
-              {tags.map((tag) => (
-                <Badge key={tag.tag_id} variant="outline" className="border-[rgba(3,227,140,0.25)] text-[#03e38c] bg-[#070d0b] text-[9px] uppercase font-bold tracking-widest rounded-sm">
-                  {tag.name}
-                </Badge>
-              ))}
+      {/* ── Article Detail Modal ── */}
+      {isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: "rgba(2,6,23,0.85)", backdropFilter: "blur(8px)" }}
+          onClick={closeArticle}>
+          <div
+            className="relative w-full max-w-2xl max-h-[85vh] bg-[#0f172a] border border-[rgba(56,189,248,0.2)] rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal header */}
+            <div className="flex items-start justify-between p-6 border-b border-[rgba(56,189,248,0.1)]">
+              <div className="flex-1 pr-4">
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  {tags.map((tag) => (
+                    <span key={tag.tag_id} className={`text-[10px] font-semibold italic px-2 py-0.5 rounded-full ${tagClass(tag.name)}`}>
+                      {tag.name}
+                    </span>
+                  ))}
+                </div>
+                <h2 className="text-xl font-bold italic text-[#e2e8f0] leading-snug">{article.title}</h2>
+                <div className="flex items-center gap-3 mt-2 text-xs italic text-[#64748b]">
+                  <span>By {authorDisplay}</span>
+                  {article.is_verified_author && <span className="text-[#38bdf8]">✓ Verified</span>}
+                  <span>·</span>
+                  <span>{relativeDate(article.published_at)}</span>
+                  <span>·</span>
+                  <span>{readTime(article.content)}</span>
+                </div>
+              </div>
+              <button onClick={closeArticle}
+                className="flex-shrink-0 p-1.5 text-[#475569] hover:text-[#e2e8f0] hover:bg-[#1e293b] rounded-lg transition-all">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            <DialogTitle className="text-xl font-bold text-[#c9d1c9] tracking-tight">
-              {article.title}
-            </DialogTitle>
-            <div className="text-[10px] text-[#708078] pt-1 border-b border-[rgba(3,227,140,0.1)] pb-2 flex justify-between">
-              <span>DESIGNATION: SIG-0{article.article_id}</span>
-              <span>AUTHOR_REF: SEC-0{article.author_id}</span>
-              <span>DATE_METRIC: {article.published_at ? new Date(article.published_at).toLocaleString() : "ACTIVE RECORD"}</span>
+
+            {/* Content */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <p className="text-sm italic leading-relaxed text-[#94a3b8] whitespace-pre-wrap">
+                {article.content ?? "No content available for this article."}
+              </p>
             </div>
-          </DialogHeader>
-          <div className="mt-4 text-xs leading-relaxed text-[#c9d1c9] space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-            <p className="whitespace-pre-wrap select-text selection:bg-[#03e38c]/20">
-              {article.content || 
-                "No signal feed transcript decoded. The transmission source might have fragmented. Synthesizing secondary telemetry metrics..."
-              }
-            </p>
-            <div className="border-t border-[rgba(3,227,140,0.1)] pt-3 text-[10px] italic text-[#03e38c]">
-              {">>> TELEMETRY MONITORING ACTIVE. READING INTERVAL IS RECORDED UPON CONSOLE CLOSE."}
+
+            {/* Modal footer */}
+            <div className="flex items-center justify-between p-4 border-t border-[rgba(56,189,248,0.1)] bg-[#020617]/50">
+              <span className="text-xs italic text-[#475569]">{article.view_count.toLocaleString()} views</span>
+              <div className="flex items-center gap-2">
+                <button onClick={handleLike} disabled={loading}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs italic rounded-lg border transition-all ${
+                    isLiked
+                      ? "border-rose-400/40 text-rose-400 bg-rose-400/10"
+                      : "border-[rgba(56,189,248,0.15)] text-[#64748b] hover:text-[#e2e8f0] hover:border-[rgba(56,189,248,0.3)]"
+                  }`}>
+                  ♥ Like
+                </button>
+                <button onClick={handleSave} disabled={loading}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs italic rounded-lg border transition-all ${
+                    isSaved
+                      ? "border-[#38bdf8]/40 text-[#38bdf8] bg-[#38bdf8]/10"
+                      : "border-[rgba(56,189,248,0.15)] text-[#64748b] hover:text-[#e2e8f0] hover:border-[rgba(56,189,248,0.3)]"
+                  }`}>
+                  🔖 Save
+                </button>
+              </div>
             </div>
           </div>
-        </DialogContent>
-      </Dialog>
+        </div>
+      )}
     </>
   );
 }
