@@ -4,9 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { TopNavbar } from "@/components/TopNavbar";
 import { ArticleCard } from "@/components/ArticleCard";
 import { ChatPanel } from "@/components/ChatPanel";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BASE_URL } from "@/lib/api";
 
 interface Tag {
@@ -50,22 +47,30 @@ export default function FeedPage() {
   const [sortBy, setSortBy] = useState<"newest" | "trending">("newest");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Auth helper
+  const getAuthHeaders = useCallback((): Record<string, string> => {
+    const token = typeof window !== "undefined" ? localStorage.getItem("auth-token") : null;
+    return token ? { "Authorization": `Bearer ${token}` } : {};
+  }, []);
+
   // Load Tags, Preferences & Reading History
   const loadSidebarData = useCallback(async () => {
     try {
-      const tagsRes = await fetch(`${BASE_URL}/api/tags`);
+      const headers = getAuthHeaders();
+
+      const tagsRes = await fetch(`${BASE_URL}/api/tags`, { headers });
       if (tagsRes.ok) {
         const tagsData = await tagsRes.json();
         setTags(tagsData);
       }
 
-      const prefRes = await fetch(`${BASE_URL}/api/users/me/preferences`);
+      const prefRes = await fetch(`${BASE_URL}/api/users/me/preferences`, { headers });
       if (prefRes.ok) {
         const prefData = await prefRes.json();
         setPreferences(prefData);
       }
 
-      const histRes = await fetch(`${BASE_URL}/api/users/me/history`);
+      const histRes = await fetch(`${BASE_URL}/api/users/me/history`, { headers });
       if (histRes.ok) {
         const histData = await histRes.json();
         setHistory(histData);
@@ -73,16 +78,16 @@ export default function FeedPage() {
     } catch (err) {
       console.error("Error loading sidebar metadata:", err);
     }
-  }, []);
+  }, [getAuthHeaders]);
 
   // Load Feed / Articles
   const loadArticles = useCallback(async () => {
     setIsRefreshing(true);
     try {
+      const headers = getAuthHeaders();
       let endpoint = `${BASE_URL}/api/feed`;
       
       if (activeTab === "global") {
-        // Construct query parameters for global filtering
         const params = new URLSearchParams();
         if (searchTerm) params.append("search", searchTerm);
         if (selectedTag) params.append("tag", selectedTag.toString());
@@ -91,14 +96,13 @@ export default function FeedPage() {
         endpoint = `${BASE_URL}/api/articles?${params.toString()}`;
       }
 
-      const res = await fetch(endpoint);
+      const res = await fetch(endpoint, { headers });
       if (res.ok) {
         const data = await res.json();
         
-        // Enrich mock data with tags if missing
+        // Enrich articles with tags if missing
         const enriched = data.map((art: Article) => {
           if (!art.tags) {
-            // Give articles deterministic mock tags
             const artTags = [];
             if (art.article_id % 2 === 0) artTags.push({ tag_id: 1, name: "Tech" });
             if (art.article_id % 3 === 0 || art.article_id === 1) artTags.push({ tag_id: 2, name: "Politics" });
@@ -115,19 +119,42 @@ export default function FeedPage() {
     } finally {
       setIsRefreshing(false);
     }
-  }, [activeTab, searchTerm, selectedTag, sortBy]);
+  }, [activeTab, searchTerm, selectedTag, sortBy, getAuthHeaders]);
 
-  // Load everything on mount and tab changes
+  // Sync Navbar search via custom event
+  useEffect(() => {
+    const handleSearchEvent = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      setSearchTerm(customEvent.detail);
+      setActiveTab("global"); // Auto switch to archive mode when searching
+      setSelectedTag(null);
+    };
+    window.addEventListener("archive-search", handleSearchEvent);
+    return () => window.removeEventListener("archive-search", handleSearchEvent);
+  }, []);
+
+  // Listen to profile interaction changes or resets
   useEffect(() => {
     loadArticles();
     loadSidebarData();
   }, [loadArticles, loadSidebarData]);
 
+  // Listen to role changes
+  useEffect(() => {
+    const handleRoleChange = () => {
+      loadArticles();
+      loadSidebarData();
+    };
+    window.addEventListener("role-change", handleRoleChange);
+    return () => window.removeEventListener("role-change", handleRoleChange);
+  }, [loadArticles, loadSidebarData]);
+
   // Reset Preferences Handler
   const handleResetPreferences = async () => {
     try {
-      await fetch(`${BASE_URL}/api/users/me/preferences`, { method: "DELETE" });
-      await fetch(`${BASE_URL}/api/users/me/history`, { method: "DELETE" });
+      const headers = getAuthHeaders();
+      await fetch(`${BASE_URL}/api/users/me/preferences`, { method: "DELETE", headers });
+      await fetch(`${BASE_URL}/api/users/me/history`, { method: "DELETE", headers });
       loadArticles();
       loadSidebarData();
     } catch (err) {
@@ -135,211 +162,213 @@ export default function FeedPage() {
     }
   };
 
-  // Triggered when an ArticleCard registers a silent view/like/save interaction
   const handleInteractionChange = () => {
     loadSidebarData();
   };
 
+  // Helper to map DB tags to Mockup filter selections
+  const getTagIdByName = (name: string) => {
+    const found = tags.find(t => t.name.toLowerCase().includes(name.toLowerCase()));
+    return found ? found.tag_id : null;
+  };
+
+  const tagTechId = getTagIdByName("Tech");
+  const tagPoliticsId = getTagIdByName("Politics");
+  const tagEconomicsId = getTagIdByName("Economics");
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500/30 relative overflow-hidden">
+    <div className="min-h-screen bg-[#070d0b] text-[#c9d1c9] flex flex-col relative overflow-hidden">
       {/* 3D perspective grid background */}
       <div 
-        className="absolute inset-0 pointer-events-none opacity-40"
+        className="absolute inset-0 pointer-events-none opacity-10"
         style={{
           backgroundImage: `
-            linear-gradient(to right, rgba(99, 102, 241, 0.05) 1px, transparent 1px),
-            linear-gradient(to bottom, rgba(99, 102, 241, 0.05) 1px, transparent 1px)
+            linear-gradient(to right, #03e38c 1px, transparent 1px),
+            linear-gradient(to bottom, #03e38c 1px, transparent 1px)
           `,
-          backgroundSize: "80px 80px",
-          transform: "perspective(1000px) rotateX(70deg) translateY(-250px) translateZ(-100px)",
-          maskImage: "linear-gradient(to bottom, rgba(0,0,0,1) 5%, rgba(0,0,0,0) 80%)",
+          backgroundSize: "60px 60px",
+          transform: "perspective(800px) rotateX(65deg) translateY(-200px) translateZ(-80px)",
+          maskImage: "linear-gradient(to bottom, rgba(0,0,0,1) 10%, rgba(0,0,0,0) 80%)",
           transformOrigin: "top center",
           height: "150%"
         }}
       />
-      {/* Ambient floating orbs */}
-      <div className="absolute top-[20%] left-[-15%] w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[130px] pointer-events-none animate-pulse" style={{ animationDuration: "8s" }} />
-      <div className="absolute top-[60%] right-[-15%] w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[130px] pointer-events-none animate-pulse" style={{ animationDuration: "12s" }} />
 
       <TopNavbar />
 
-      <main className="flex-grow container mx-auto px-4 sm:px-6 py-8 relative z-10">
-        {/* Hero Section */}
-        <div className="mb-10 text-center md:text-left">
-          <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent mb-3" id="page-title">
-            Contrarian Feed
+      <main className="flex-grow container mx-auto px-4 sm:px-6 py-10 relative z-10">
+        {/* Core Feed Title */}
+        <div className="mb-10 text-left border-b border-[rgba(3,227,140,0.1)] pb-6">
+          <h1 className="text-3xl font-extrabold tracking-wider text-[#c9d1c9] mb-3 uppercase terminal-font" id="page-title">
+            Core Feed / Signals
           </h1>
-          <p className="text-slate-400 text-sm md:text-base max-w-2xl leading-relaxed">
-            Welcome to the EchoBreaker reading model. We disrupt confirmation bias by surfacing perspectives that challenge your established affinity patterns.
+          <p className="text-[#708078] text-xs max-w-3xl leading-relaxed terminal-font">
+            Incoming data streams from the ecological fracture zones. Real-time monitoring and synthesis. surfs opposing views to dissolve polarization networks.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Left / Middle: Articles Feed */}
+          {/* Main Feed Content */}
           <div className="lg:col-span-8 space-y-6">
-            <Tabs 
-              defaultValue="personalized" 
-              value={activeTab} 
-              onValueChange={(val) => {
-                setActiveTab(val as "personalized" | "global");
-                setSelectedTag(null);
-              }}
-              className="w-full"
-            >
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-6">
-                <TabsList className="bg-slate-900 border border-slate-800/80 p-1 rounded-lg">
-                  <TabsTrigger 
-                    value="personalized" 
-                    id="tab-personalized"
-                    className="data-[state=active]:bg-indigo-600 data-[state=active]:text-white font-medium text-xs sm:text-sm transition-all"
-                  >
-                    💡 Contrarian Feed
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="global" 
-                    id="tab-global"
-                    className="data-[state=active]:bg-sky-600 data-[state=active]:text-white font-medium text-xs sm:text-sm transition-all"
-                  >
-                    🌐 Global Library
-                  </TabsTrigger>
-                </TabsList>
-
-                {/* Filters (Only show for Global Library) */}
-                {activeTab === "global" && (
-                  <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-                    <Input
-                      placeholder="Search title..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="bg-slate-900 border-slate-800 h-9 text-xs sm:text-sm w-full sm:w-44 focus:ring-sky-500/20"
-                      id="input-search"
-                    />
-                    <select
-                      value={sortBy}
-                      onChange={(e) => setSortBy(e.target.value as "newest" | "trending")}
-                      className="bg-slate-900 border border-slate-800 text-xs sm:text-sm h-9 rounded-md px-3 text-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500/20"
-                      id="select-sort"
-                    >
-                      <option value="newest">Newest</option>
-                      <option value="trending">Trending</option>
-                    </select>
-                  </div>
-                )}
+            
+            {/* Cyber Terminal Mode Selectors */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[rgba(3,227,140,0.1)] pb-4 mb-6 terminal-font text-xs">
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => {
+                    setActiveTab("personalized");
+                    setSelectedTag(null);
+                  }}
+                  id="tab-personalized"
+                  className={`px-3 py-1.5 border rounded-sm transition-all uppercase ${
+                    activeTab === "personalized"
+                      ? "bg-[#03e38c]/10 border-[#03e38c] text-[#03e38c] shadow-[0_0_10px_rgba(3,227,140,0.2)]"
+                      : "border-transparent text-[#708078] hover:text-[#c9d1c9]"
+                  }`}
+                >
+                  [ MODE: SIGNAL DEVIATION ]
+                </button>
+                <button 
+                  onClick={() => {
+                    setActiveTab("global");
+                    setSelectedTag(null);
+                  }}
+                  id="tab-global"
+                  className={`px-3 py-1.5 border rounded-sm transition-all uppercase ${
+                    activeTab === "global"
+                      ? "bg-[#00e5ff]/10 border-[#00e5ff] text-[#00e5ff] shadow-[0_0_10px_rgba(0,229,255,0.2)]"
+                      : "border-transparent text-[#708078] hover:text-[#c9d1c9]"
+                  }`}
+                >
+                  [ MODE: CENTRAL ARCHIVE ]
+                </button>
               </div>
 
-              <TabsContent value="personalized" className="mt-0 outline-none">
-                <div className="bg-indigo-500/5 border border-indigo-500/10 rounded-xl p-4 mb-6 flex items-start gap-3">
-                  <div className="p-2 bg-indigo-500/10 rounded-lg text-indigo-400 text-lg">⚖️</div>
-                  <div>
-                    <h3 className="font-semibold text-sm text-indigo-300">Negative Bias Active</h3>
-                    <p className="text-xs text-slate-400 mt-0.5 leading-relaxed">
-                      SURFACING content with tags OPPOSITE to your top interest tags to prevent cognitive polarization.
-                    </p>
-                  </div>
-                </div>
-
-                {isRefreshing ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="h-44 bg-slate-900/60 rounded-xl border border-slate-800/40 animate-pulse" />
-                    ))}
-                  </div>
-                ) : articles.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {articles.map((article) => (
-                      <ArticleCard 
-                        key={article.article_id} 
-                        article={article} 
-                        onInteractionChange={handleInteractionChange}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 bg-slate-900/20 rounded-xl border border-dashed border-slate-800">
-                    <p className="text-slate-500 text-sm">No articles available in your personalized feed.</p>
-                  </div>
-                )}
-              </TabsContent>
-
-              <TabsContent value="global" className="mt-0 outline-none">
-                {/* Tag badges row */}
-                <div className="flex flex-wrap gap-1.5 mb-6">
-                  <Button
-                    size="sm"
-                    variant={selectedTag === null ? "default" : "outline"}
-                    onClick={() => setSelectedTag(null)}
-                    className="text-xs h-7 rounded-full"
+              {/* Sorting & Search Controls */}
+              {activeTab === "global" && (
+                <div className="flex items-center gap-2 w-full sm:w-auto">
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as "newest" | "trending")}
+                    className="bg-[#09100d] border border-[rgba(3,227,140,0.15)] text-[10px] h-8 rounded-sm px-2 text-[#c9d1c9] focus:outline-none focus:border-[#03e38c]"
+                    id="select-sort"
                   >
-                    All Tags
-                  </Button>
-                  {tags.map((t) => (
-                    <Button
-                      key={t.tag_id}
-                      size="sm"
-                      variant={selectedTag === t.tag_id ? "default" : "outline"}
-                      onClick={() => setSelectedTag(t.tag_id)}
-                      className={`text-xs h-7 rounded-full transition-all ${
-                        selectedTag === t.tag_id 
-                          ? "bg-sky-600 hover:bg-sky-500 text-white" 
-                          : "border-slate-800 text-slate-400 hover:bg-slate-950"
-                      }`}
-                    >
-                      {t.name}
-                    </Button>
-                  ))}
+                    <option value="newest">LATEST_LOGS</option>
+                    <option value="trending">HIGH_FLOW</option>
+                  </select>
                 </div>
+              )}
+            </div>
 
-                {isRefreshing ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {[1, 2].map((i) => (
-                      <div key={i} className="h-44 bg-slate-900/60 rounded-xl border border-slate-800/40 animate-pulse" />
-                    ))}
-                  </div>
-                ) : articles.length > 0 ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {articles.map((article) => (
-                      <ArticleCard 
-                        key={article.article_id} 
-                        article={article} 
-                        onInteractionChange={handleInteractionChange}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 bg-slate-900/20 rounded-xl border border-dashed border-slate-800">
-                    <p className="text-slate-500 text-sm">No articles found matching filters.</p>
-                  </div>
-                )}
-              </TabsContent>
-            </Tabs>
+            {/* Category Tags Layout (Mockup buttons) */}
+            {activeTab === "global" && (
+              <div className="flex flex-wrap gap-3 mb-6 terminal-font text-xs">
+                <button
+                  onClick={() => setSelectedTag(null)}
+                  className={`px-4 py-2 border rounded-sm transition-all uppercase ${
+                    selectedTag === null
+                      ? "bg-[#c9d1c9]/10 border-[#c9d1c9] text-[#c9d1c9]"
+                      : "border-[rgba(3,227,140,0.15)] text-[#708078] hover:text-[#c9d1c9]"
+                  }`}
+                >
+                  ALL SIGNALS
+                </button>
+                <button
+                  onClick={() => tagTechId && setSelectedTag(tagTechId)}
+                  className={`px-4 py-2 border rounded-sm transition-all uppercase ${
+                    selectedTag === tagTechId
+                      ? "bg-[rgba(255,0,127,0.15)] border-[#ff007f] text-[#ff007f]"
+                      : "border-[#ff007f]/30 text-[#ff007f]/70 hover:border-[#ff007f] hover:text-[#ff007f]"
+                  }`}
+                >
+                  ANOMALY
+                </button>
+                <button
+                  onClick={() => tagPoliticsId && setSelectedTag(tagPoliticsId)}
+                  className={`px-4 py-2 border rounded-sm transition-all uppercase ${
+                    selectedTag === tagPoliticsId
+                      ? "bg-[rgba(0,229,255,0.15)] border-[#00e5ff] text-[#00e5ff]"
+                      : "border-[#00e5ff]/30 text-[#00e5ff]/70 hover:border-[#00e5ff] hover:text-[#00e5ff]"
+                  }`}
+                >
+                  BIOMETRICS
+                </button>
+                <button
+                  onClick={() => tagEconomicsId && setSelectedTag(tagEconomicsId)}
+                  className={`px-4 py-2 border rounded-sm transition-all uppercase ${
+                    selectedTag === tagEconomicsId
+                      ? "bg-[rgba(3,227,140,0.15)] border-[#03e38c] text-[#03e38c]"
+                      : "border-[#03e38c]/30 text-[#03e38c]/70 hover:border-[#03e38c] hover:text-[#03e38c]"
+                  }`}
+                >
+                  SYNTHETICS
+                </button>
+              </div>
+            )}
+
+            {/* Articles List */}
+            {activeTab === "personalized" && (
+              <div className="bg-[rgba(3,227,140,0.02)] border border-[rgba(3,227,140,0.15)] rounded-sm p-4 mb-6 flex items-start gap-3 terminal-font text-xs">
+                <div className="p-1.5 bg-[#03e38c]/10 text-[#03e38c] rounded-sm">⚖️</div>
+                <div>
+                  <h3 className="font-bold text-[#03e38c] uppercase tracking-wider">NEGATIVE BIAS ROUTING: ACTIVE</h3>
+                  <p className="text-[#708078] mt-0.5 leading-relaxed">
+                    Surfacing node files containing topics OPPOSITE to your leading affinity values. Destabilizing confirmation loops.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {isRefreshing ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-48 bg-[#0b120f] rounded-sm border border-[rgba(3,227,140,0.1)] animate-pulse" />
+                ))}
+              </div>
+            ) : articles.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {articles.map((article) => (
+                  <ArticleCard 
+                    key={article.article_id} 
+                    article={article} 
+                    onInteractionChange={handleInteractionChange}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-16 bg-[#0b120f] border border-dashed border-[rgba(3,227,140,0.15)] rounded-sm terminal-font">
+                <p className="text-[#708078] text-xs">NO DECODED SIGNALS DETECTED IN ACTIVE CHANNEL.</p>
+              </div>
+            )}
           </div>
 
-          {/* Right Sidebar: Preferences, Logs, Chat Assistant */}
+          {/* Right Sidebar */}
           <div className="lg:col-span-4 space-y-6">
-            {/* Preferences Dashboard */}
-            <div id="preferences" className="bg-slate-900/50 border border-slate-800/60 rounded-2xl p-5 shadow-sm">
-              <h2 className="text-base font-bold mb-4 flex items-center gap-2">
-                📊 Preference Engine (Track B)
+            
+            {/* Preference Engine (Track B) */}
+            <div id="preferences" className="bg-[#0b120f] border border-[rgba(3,227,140,0.15)] rounded-sm p-5 terminal-font text-xs">
+              <h2 className="text-sm font-bold text-[#03e38c] mb-4 uppercase tracking-wider flex items-center gap-2">
+                ⚙️ Preference Engine (Track B)
               </h2>
 
-              {/* Tag Affinity list */}
+              {/* Tag Affinity Gauge bars */}
               <div className="mb-6">
-                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Tag Affinity Scores</h3>
+                <h3 className="text-[10px] font-bold text-[#708078] uppercase tracking-widest mb-3 border-b border-[rgba(3,227,140,0.1)] pb-1">Tag Affinity Matrix</h3>
                 {preferences.length > 0 ? (
-                  <div className="space-y-3">
+                  <div className="space-y-3.5">
                     {preferences.map((p) => {
                       const maxScore = Math.max(...preferences.map((pref) => pref.affinity_score), 1);
                       const widthPercent = Math.min((p.affinity_score / maxScore) * 100, 100);
                       
                       return (
                         <div key={p.name} className="space-y-1">
-                          <div className="flex items-center justify-between text-xs font-semibold">
+                          <div className="flex items-center justify-between text-[10px] font-bold uppercase">
                             <span>{p.name}</span>
-                            <span className="text-indigo-400">{p.affinity_score} pts</span>
+                            <span className="text-[#00e5ff]">{p.affinity_score} pts</span>
                           </div>
-                          <div className="w-full bg-slate-800 h-1.5 rounded-full overflow-hidden">
+                          <div className="w-full bg-[#070d0b] border border-[rgba(3,227,140,0.15)] h-2 rounded-sm overflow-hidden p-0.5">
                             <div 
-                              className="bg-indigo-500 h-full rounded-full transition-all duration-500" 
+                              className="bg-[#03e38c] h-full rounded-sm transition-all duration-500 shadow-[0_0_8px_rgba(3,227,140,0.5)]" 
                               style={{ width: `${widthPercent}%` }}
                             />
                           </div>
@@ -348,39 +377,37 @@ export default function FeedPage() {
                     })}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-500 italic">No interest data compiled yet.</p>
+                  <p className="text-[#4d5e56] italic">No telemetry data recorded.</p>
                 )}
               </div>
 
-              {/* History list */}
+              {/* History Console Logs */}
               <div className="mb-6">
-                <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Reading History</h3>
+                <h3 className="text-[10px] font-bold text-[#708078] uppercase tracking-widest mb-3 border-b border-[rgba(3,227,140,0.1)] pb-1">Transmission Logs</h3>
                 {history.length > 0 ? (
-                  <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
+                  <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
                     {history.map((h, i) => (
-                      <div key={i} className="flex justify-between items-center text-xs border-b border-slate-800/50 pb-1.5">
-                        <span className="truncate text-slate-300 font-medium max-w-[170px]">{h.title}</span>
-                        <span className="text-[10px] text-slate-500">{h.view_duration_seconds}s</span>
+                      <div key={i} className="flex justify-between items-center text-[10px] border-b border-[rgba(3,227,140,0.05)] pb-1.5">
+                        <span className="truncate text-[#c9d1c9] max-w-[170px] uppercase">
+                          {h.title}
+                        </span>
+                        <span className="text-[#4d5e56] shrink-0 font-semibold">{h.view_duration_seconds}s</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-xs text-slate-500 italic">Reading logs empty.</p>
+                  <p className="text-[#4d5e56] italic">Logs stream empty.</p>
                 )}
               </div>
 
               {/* Reset Controls */}
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleResetPreferences} 
-                  variant="outline" 
-                  size="sm"
-                  className="w-full border-slate-800 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 font-semibold"
-                  id="btn-reset-preferences"
-                >
-                  🔄 Reset Engine
-                </Button>
-              </div>
+              <button 
+                onClick={handleResetPreferences} 
+                className="w-full h-8 border border-[#ff007f] text-[#ff007f] hover:bg-[#ff007f]/10 text-xs font-bold uppercase transition-all rounded-sm flex items-center justify-center gap-1.5"
+                id="btn-reset-preferences"
+              >
+                🔄 Reset Engine
+              </button>
             </div>
 
             {/* Conversational Assistant */}
@@ -390,6 +417,23 @@ export default function FeedPage() {
           </div>
         </div>
       </main>
+
+      {/* Cyberpunk Monospace Footer */}
+      <footer className="mt-auto border-t border-[rgba(3,227,140,0.1)] bg-[#09100d]/30 py-5 terminal-font text-[10px] text-[#4d5e56]">
+        <div className="container mx-auto px-4 sm:px-6 flex flex-col md:flex-row items-center justify-between gap-4 uppercase">
+          <div className="font-extrabold tracking-widest text-[#03e38c]/80">
+            Eco Breaker
+          </div>
+          <div className="flex gap-6 tracking-widest">
+            <span className="cursor-pointer hover:text-[#03e38c]">Terminal</span>
+            <span className="cursor-pointer hover:text-[#00e5ff]">Modes</span>
+            <span className="cursor-pointer hover:text-[#ff007f]">Core</span>
+          </div>
+          <div>
+            © 2026 Eco Breaker Archive. All rights reserved.
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }

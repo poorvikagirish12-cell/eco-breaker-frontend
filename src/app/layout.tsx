@@ -1,28 +1,22 @@
 import type { Metadata } from "next";
-import { Dancing_Script, Lora, Montserrat } from "next/font/google";
+import { Space_Grotesk, Share_Tech_Mono } from "next/font/google";
 import "./globals.css";
 
-const dancingScript = Dancing_Script({
-  subsets: ["latin"],
-  variable: "--font-logo",
-  weight: ["600", "700"],
-});
-
-const lora = Lora({
-  subsets: ["latin"],
-  variable: "--font-heading",
-  weight: ["400", "500", "600"],
-});
-
-const montserrat = Montserrat({
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   variable: "--font-sans",
-  weight: ["300", "400", "500", "600"],
+  weight: ["300", "400", "500", "600", "700"],
+});
+
+const shareTechMono = Share_Tech_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400"],
 });
 
 export const metadata: Metadata = {
-  title: "EchoBreaker",
-  description: "Contrarian blogging platform",
+  title: "EcoBreaker Archive",
+  description: "Contrarian blogging platform and signal synthesis engine.",
 };
 
 export default function RootLayout({
@@ -33,10 +27,11 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${dancingScript.variable} ${lora.variable} ${montserrat.variable} font-sans antialiased bg-slate-950 text-slate-50`}
+        className={`${spaceGrotesk.variable} ${shareTechMono.variable} font-sans antialiased bg-[#070d0b] text-[#c9d1c9]`}
       >
         {children}
       </body>
     </html>
   );
 }
+

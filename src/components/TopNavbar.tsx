@@ -10,6 +10,7 @@ export function TopNavbar() {
   const router = useRouter();
   const [userName, setUserName] = useState("User");
   const [userEmail, setUserEmail] = useState("");
+  const [searchValue, setSearchValue] = useState("");
 
   useEffect(() => {
     const name = localStorage.getItem("user-name");
@@ -22,12 +23,17 @@ export function TopNavbar() {
     try {
       await fetch(`${BASE_URL}/api/auth/logout`, { method: "POST" });
     } catch (_) {}
-    // Clear session
     localStorage.removeItem("auth-token");
     localStorage.removeItem("user-name");
     localStorage.removeItem("user-email");
     localStorage.removeItem("is-authenticated");
     router.push("/login");
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchValue(val);
+    window.dispatchEvent(new CustomEvent("archive-search", { detail: val }));
   };
 
   const initials = userName
@@ -38,104 +44,108 @@ export function TopNavbar() {
     .slice(0, 2);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/60">
+    <header className="sticky top-0 z-50 w-full border-b border-[rgba(3,227,140,0.15)] bg-[#070d0b]/80 backdrop-blur-md">
       <div className="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6">
-
-        {/* Logo + Nav */}
-        <div className="flex items-center gap-6">
-          <Link href="/feed" className="flex items-center space-x-2.5 group" id="nav-logo">
-            <div className="relative">
-              <img src="/logo.png" className="w-8 h-8 rounded-xl shadow-lg object-cover ring-1 ring-white/10 group-hover:ring-sky-400/40 transition-all duration-300" alt="EchoBreaker Logo" />
-              <div className="absolute inset-0 rounded-xl bg-sky-400/20 opacity-0 group-hover:opacity-100 blur-sm transition-all duration-300" />
+        
+        {/* Brand Logo & lowercase "ecobreaker" title */}
+        <div className="flex items-center gap-3">
+          <Link href="/feed" className="flex items-center gap-2 group" id="nav-logo">
+            <div className="relative flex items-center justify-center p-1 rounded bg-gradient-to-br from-[#0a1814] to-[#070d0b] border border-[rgba(3,227,140,0.3)] shadow-[0_0_10px_rgba(3,227,140,0.1)]">
+              {/* Custom SVG Circuit Leaf Logo */}
+              <svg className="w-6 h-6 text-[#03e38c] filter drop-shadow-[0_0_4px_rgba(3,227,140,0.5)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M50 15 C80 15, 85 50, 50 85 C15 50, 20 15, 50 15 Z" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M50 15 V85" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+                <path d="M50 35 L70 30 V23" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="70" cy="23" r="3.5" fill="currentColor" />
+                <path d="M50 48 L30 43 V36" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="30" cy="36" r="3.5" fill="currentColor" />
+                <path d="M50 60 L72 57 V50" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="72" cy="50" r="3.5" fill="currentColor" />
+                <path d="M50 72 L28 69 V62" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="28" cy="62" r="3.5" fill="currentColor" />
+              </svg>
             </div>
-            <span
-              className="brand-logo select-none"
-              style={{
-                background: "linear-gradient(135deg, #00b3ff 0%, #818cf8 50%, #c084fc 100%)",
-                backgroundSize: "200% auto",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-                animation: "shimmer 4s linear infinite",
-              }}
-            >
-              EchoBreaker
+            <span className="text-lg font-bold tracking-wider text-[#03e38c] terminal-font transition-all group-hover:text-[#00e5ff] group-hover:drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">
+              ecobreaker
             </span>
           </Link>
+        </div>
 
-          {/* Desktop Nav Links */}
-          <nav className="hidden md:flex items-center space-x-1 text-sm font-medium">
+        {/* Navigation Links & Search Input */}
+        <div className="flex items-center gap-6 md:gap-8">
+          <nav className="flex items-center space-x-6 text-xs md:text-sm font-medium uppercase tracking-wider terminal-font">
             <Link
               href="/feed"
-              id="nav-link-feed"
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all ${
-                pathname === "/feed"
-                  ? "bg-indigo-500/10 text-indigo-400 font-semibold"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              id="nav-link-archive"
+              className={`transition-colors hover:text-[#03e38c] ${
+                pathname === "/feed" ? "text-[#03e38c] drop-shadow-[0_0_5px_rgba(3,227,140,0.5)] font-bold" : "text-muted-foreground"
               }`}
             >
-              📰 Browse Feed
+              Archive
+            </Link>
+            <Link
+              href="/feed?tab=personalized"
+              id="nav-link-signals"
+              className={`transition-colors hover:text-[#03e38c] ${
+                pathname === "/feed" ? "text-muted-foreground hover:text-[#03e38c]" : "text-muted-foreground"
+              }`}
+            >
+              Signals
             </Link>
             <Link
               href="/write"
-              id="nav-link-write"
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg transition-all ${
-                pathname === "/write"
-                  ? "bg-sky-500/10 text-sky-400 font-semibold"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              id="nav-link-synthesis"
+              className={`transition-colors hover:text-[#03e38c] ${
+                pathname === "/write" ? "text-[#00e5ff] drop-shadow-[0_0_5px_rgba(0,229,255,0.5)] font-bold" : "text-muted-foreground"
               }`}
             >
-              ✍️ Write a Blog
+              Synthesis
             </Link>
           </nav>
-        </div>
 
-        {/* Right Side */}
-        <div className="flex items-center gap-3">
-          {/* Mobile nav */}
-          <div className="flex md:hidden items-center gap-2">
-            <Link href="/feed" className={`text-xs font-semibold px-2 py-1 rounded-lg ${pathname === "/feed" ? "text-indigo-400" : "text-muted-foreground"}`}>Feed</Link>
-            <Link href="/write" className={`text-xs font-semibold px-2 py-1 rounded-lg ${pathname === "/write" ? "text-sky-400" : "text-muted-foreground"}`}>Write</Link>
+          {/* Search Input Bar (Desktop) */}
+          <div className="hidden md:relative md:block">
+            <input
+              type="text"
+              placeholder="Search archive..."
+              value={searchValue}
+              onChange={handleSearchChange}
+              className="w-48 xl:w-60 h-8 pl-3 pr-8 text-xs bg-[#09100d] border border-[rgba(3,227,140,0.2)] rounded-sm text-[#c9d1c9] placeholder:text-[#4d5e56] focus:border-[#03e38c] focus:outline-none transition-all terminal-font"
+            />
+            <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#03e38c]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
           </div>
-
-          {/* Write CTA */}
-          <Link
-            href="/write"
-            id="btn-write-post"
-            className="hidden sm:flex items-center gap-1.5 bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white text-xs font-bold px-4 py-2 rounded-full transition-all shadow-md shadow-indigo-500/20"
-          >
-            + Post a Blog
-          </Link>
 
           {/* User Menu */}
           <div className="flex items-center gap-2 group relative">
-            <div className="flex items-center gap-2 bg-muted/60 hover:bg-muted px-3 py-1.5 rounded-full border border-border cursor-pointer transition-all" id="user-menu">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-sky-400 to-indigo-500 flex items-center justify-center text-white text-[10px] font-black">
+            <div className="flex items-center gap-1.5 bg-[#09100d] hover:bg-[#0f1d19] px-2.5 py-1 rounded border border-[rgba(3,227,140,0.2)] cursor-pointer transition-all" id="user-menu">
+              <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#03e38c] to-[#00e5ff] flex items-center justify-center text-[#070d0b] text-[9px] font-black">
                 {initials}
               </div>
-              <span className="text-xs font-semibold text-foreground hidden sm:block capitalize">{userName}</span>
-              <svg className="w-3 h-3 text-muted-foreground" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <span className="text-[10px] uppercase font-semibold text-muted-foreground hidden sm:block truncate max-w-[80px] terminal-font">{userName}</span>
+              <svg className="w-3 h-3 text-[#03e38c]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
               </svg>
             </div>
 
-            {/* Dropdown */}
-            <div className="absolute right-0 top-full mt-2 w-52 bg-slate-900 border border-slate-800 rounded-xl shadow-xl shadow-black/30 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50">
-              <div className="p-3 border-b border-slate-800">
-                <p className="text-xs font-bold text-slate-200 capitalize">{userName}</p>
-                <p className="text-[11px] text-slate-500 mt-0.5 truncate">{userEmail}</p>
+            {/* Dropdown Menu */}
+            <div className="absolute right-0 top-full mt-2 w-48 bg-[#0b120f] border border-[rgba(3,227,140,0.25)] rounded shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 terminal-font">
+              <div className="p-3 border-b border-[rgba(3,227,140,0.15)] bg-[#070d0b]">
+                <p className="text-xs font-bold text-[#03e38c] truncate capitalize">{userName}</p>
+                <p className="text-[9px] text-[#4d5e56] mt-0.5 truncate">{userEmail}</p>
               </div>
-              <div className="p-1.5 space-y-0.5">
-                <Link href="/feed" className="flex items-center gap-2.5 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 rounded-lg transition-colors">
-                  <span>📰</span> My Feed
+              <div className="p-1 space-y-0.5">
+                <Link href="/feed" className="flex items-center gap-2 px-2.5 py-1.5 text-[11px] text-muted-foreground hover:text-[#03e38c] hover:bg-[#070d0b] rounded transition-colors uppercase">
+                  <span>📰</span> Archive
                 </Link>
-                <Link href="/write" className="flex items-center gap-2.5 px-3 py-2 text-xs text-slate-300 hover:bg-slate-800 rounded-lg transition-colors">
-                  <span>✍️</span> My Posts
+                <Link href="/write" className="flex items-center gap-2 px-2.5 py-1.5 text-[11px] text-muted-foreground hover:text-[#00e5ff] hover:bg-[#070d0b] rounded transition-colors uppercase">
+                  <span>✍️</span> Synthesis
                 </Link>
                 <button
                   onClick={handleLogout}
                   id="btn-logout"
-                  className="w-full flex items-center gap-2.5 px-3 py-2 text-xs text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
+                  className="w-full flex items-center gap-2 px-2.5 py-1.5 text-[11px] text-rose-400 hover:text-rose-300 hover:bg-[#1a080d] rounded transition-colors uppercase text-left"
                 >
                   <span>🚪</span> Sign Out
                 </button>
