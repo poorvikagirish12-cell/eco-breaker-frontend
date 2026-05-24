@@ -148,7 +148,7 @@ export default function ApiStatusPage() {
               </p>
               {!backendOnline && backendOnline !== null && BASE_URL.includes("localhost") && (
                 <p className="text-xs text-slate-500 mt-0.5 font-mono">
-                  Run: <span className="text-rose-400">uvicorn main:app --reload --port 8000</span> in task 4 folder
+                  Run: <span className="text-rose-400">uvicorn main:app --reload --port 8000</span> in the backend folder
                 </p>
               )}
             </div>
@@ -230,7 +230,7 @@ export default function ApiStatusPage() {
                 <span className="text-rose-400 font-bold shrink-0">2.</span>
                 <span>Navigate to the backend folder:<br />
                   <code className="text-xs bg-slate-900 px-2 py-0.5 rounded font-mono text-sky-400">
-                    cd "C:\Users\poorv\OneDrive\Desktop\tessa\task 4"
+                    cd "C:\Users\poorv\OneDrive\Desktop\tessa\task 6\backend"
                   </code>
                 </span>
               </li>

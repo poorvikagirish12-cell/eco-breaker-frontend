@@ -141,10 +141,29 @@ export default function FeedPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500/30">
+    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col selection:bg-indigo-500/30 relative overflow-hidden">
+      {/* 3D perspective grid background */}
+      <div 
+        className="absolute inset-0 pointer-events-none opacity-40"
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, rgba(99, 102, 241, 0.05) 1px, transparent 1px),
+            linear-gradient(to bottom, rgba(99, 102, 241, 0.05) 1px, transparent 1px)
+          `,
+          backgroundSize: "80px 80px",
+          transform: "perspective(1000px) rotateX(70deg) translateY(-250px) translateZ(-100px)",
+          maskImage: "linear-gradient(to bottom, rgba(0,0,0,1) 5%, rgba(0,0,0,0) 80%)",
+          transformOrigin: "top center",
+          height: "150%"
+        }}
+      />
+      {/* Ambient floating orbs */}
+      <div className="absolute top-[20%] left-[-15%] w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[130px] pointer-events-none animate-pulse" style={{ animationDuration: "8s" }} />
+      <div className="absolute top-[60%] right-[-15%] w-[600px] h-[600px] bg-purple-500/10 rounded-full blur-[130px] pointer-events-none animate-pulse" style={{ animationDuration: "12s" }} />
+
       <TopNavbar />
 
-      <main className="flex-grow container mx-auto px-4 sm:px-6 py-8">
+      <main className="flex-grow container mx-auto px-4 sm:px-6 py-8 relative z-10">
         {/* Hero Section */}
         <div className="mb-10 text-center md:text-left">
           <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight bg-gradient-to-r from-sky-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent mb-3" id="page-title">

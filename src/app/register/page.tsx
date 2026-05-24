@@ -37,10 +37,11 @@ export default function RegisterPage() {
       });
 
       if (res.ok || res.status === 201) {
-        // Auto-login after register
+        const data = await res.json();
+        // Auto-login after register using token returned by backend
         localStorage.setItem("user-email", email);
         localStorage.setItem("user-name", username);
-        localStorage.setItem("auth-token", "mock-jwt-token");
+        localStorage.setItem("auth-token", data.token || "mock-jwt-token");
         localStorage.setItem("is-authenticated", "true");
         router.push("/feed");
       } else {

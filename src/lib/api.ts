@@ -13,11 +13,22 @@ async function request<T>(
   options: RequestInit = {}
 ): Promise<T> {
   const url = `${BASE_URL}${path}`;
+  const token = typeof window !== "undefined" ? localStorage.getItem("auth-token") : null;
+  
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (options.headers) {
+    Object.assign(headers, options.headers);
+  }
+  
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
   const res = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      ...options.headers,
-    },
+    headers,
     ...options,
   });
 

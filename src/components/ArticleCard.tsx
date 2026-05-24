@@ -34,6 +34,35 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
   const [isSaved, setIsSaved] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [tiltStyle, setTiltStyle] = useState<React.CSSProperties>({});
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const card = e.currentTarget;
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    const xc = rect.width / 2;
+    const yc = rect.height / 2;
+    
+    // Smooth 3D tilt calculation (up to 12 degrees tilt)
+    const rotateX = -(y - yc) / 12;
+    const rotateY = (x - xc) / 12;
+    
+    setTiltStyle({
+      transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`,
+      boxShadow: `${-rotateY * 1.5}px ${-rotateX * 1.5}px 30px rgba(99, 102, 241, 0.2)`,
+      transition: "transform 0.05s ease, box-shadow 0.05s ease"
+    });
+  };
+
+  const handleMouseLeave = () => {
+    setTiltStyle({
+      transform: "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)",
+      boxShadow: "none",
+      transition: "transform 0.5s ease, box-shadow 0.5s ease"
+    });
+  };
 
   // Fallback content if not provided by feed endpoint
   const contentExcerpt = article.content 
@@ -84,7 +113,6 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
         await fetch(`${BASE_URL}/api/interactions/like`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          // Mock article ID passed in query/body as mock endpoint doesn't strictly check
         });
         setIsLiked(true);
       }
@@ -123,13 +151,19 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
       <Card 
         onClick={handleOpen}
         id={`article-card-${article.article_id}`}
-        className="group relative overflow-hidden bg-card border-border/60 hover:border-indigo-500/40 hover:shadow-lg hover:shadow-indigo-500/5 transition-all duration-300 cursor-pointer flex flex-col justify-between"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+        style={{
+          ...tiltStyle,
+          transformStyle: "preserve-3d",
+        }}
+        className="group relative overflow-hidden bg-slate-900/40 backdrop-blur-md border border-slate-800/80 hover:border-indigo-500/50 hover:shadow-indigo-500/5 cursor-pointer flex flex-col justify-between rounded-2xl transition-all duration-300"
       >
         {/* Glow decoration */}
-        <div className="absolute -inset-px bg-gradient-to-r from-sky-500/0 to-indigo-500/0 group-hover:from-sky-500/5 group-hover:to-indigo-500/10 rounded-[calc(var(--radius)-1px)] transition-all duration-500 pointer-events-none" />
+        <div className="absolute -inset-px bg-gradient-to-r from-sky-500/0 to-indigo-500/0 group-hover:from-sky-500/5 group-hover:to-indigo-500/10 rounded-2xl transition-all duration-500 pointer-events-none" />
 
-        <CardHeader className="pb-3">
-          <div className="flex flex-wrap gap-1.5 mb-2">
+        <CardHeader className="pb-3" style={{ transform: "translateZ(10px)" }}>
+          <div className="flex flex-wrap gap-1.5 mb-2" style={{ transform: "translateZ(15px)" }}>
             {tags.map((tag) => (
               <Badge 
                 key={tag.tag_id} 
@@ -140,7 +174,10 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
               </Badge>
             ))}
           </div>
-          <CardTitle className="text-lg font-bold group-hover:text-indigo-400 transition-colors line-clamp-2">
+          <CardTitle 
+            style={{ transform: "translateZ(20px)" }}
+            className="text-lg font-bold group-hover:text-indigo-400 transition-colors line-clamp-2"
+          >
             {article.title}
           </CardTitle>
           <CardDescription className="text-xs text-muted-foreground mt-1">
@@ -148,7 +185,7 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="pb-4 flex-grow">
+        <CardContent className="pb-4 flex-grow" style={{ transform: "translateZ(15px)" }}>
           <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
             {contentExcerpt}
           </p>
