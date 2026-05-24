@@ -50,23 +50,67 @@ export function TopNavbar() {
         {/* Brand Logo & lowercase "ecobreaker" title */}
         <div className="flex items-center gap-3">
           <Link href="/feed" className="flex items-center gap-2 group" id="nav-logo">
-            <div className="relative flex items-center justify-center p-1 rounded bg-gradient-to-br from-[#0a1814] to-[#070d0b] border border-[rgba(3,227,140,0.3)] shadow-[0_0_10px_rgba(3,227,140,0.1)]">
-              {/* Custom SVG Circuit Leaf Logo */}
-              <svg className="w-6 h-6 text-[#03e38c] filter drop-shadow-[0_0_4px_rgba(3,227,140,0.5)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M50 15 C80 15, 85 50, 50 85 C15 50, 20 15, 50 15 Z" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-                <path d="M50 15 V85" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-                <path d="M50 35 L70 30 V23" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                <circle cx="70" cy="23" r="3.5" fill="currentColor" />
-                <path d="M50 48 L30 43 V36" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                <circle cx="30" cy="36" r="3.5" fill="currentColor" />
-                <path d="M50 60 L72 57 V50" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                <circle cx="72" cy="50" r="3.5" fill="currentColor" />
-                <path d="M50 72 L28 69 V62" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                <circle cx="28" cy="62" r="3.5" fill="currentColor" />
+            <div className="relative flex items-center justify-center p-1 rounded bg-[#070d0b] border border-[rgba(0,229,255,0.2)] shadow-[0_0_10px_rgba(0,229,255,0.05)]">
+              {/* Custom SVG Circuit Leaf Logo with Blue-Cyan Gradient */}
+              <svg className="w-6 h-6 filter drop-shadow-[0_0_6px_rgba(0,229,255,0.3)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#00e5ff" />
+                    <stop offset="100%" stopColor="#3b82f6" />
+                  </linearGradient>
+                </defs>
+                <path 
+                  d="M50 10 C68 25, 78 45, 70 70 C60 90, 50 95, 50 95 C50 95, 40 90, 30 70 C22 45, 32 25, 50 10 Z" 
+                  stroke="url(#logoGrad)" 
+                  strokeWidth="4.5" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                />
+                <path 
+                  d="M50 20 V82" 
+                  stroke="url(#logoGrad)" 
+                  strokeWidth="3.5" 
+                  strokeLinecap="round" 
+                />
+                <path 
+                  d="M50 35 L68 31 V24" 
+                  stroke="url(#logoGrad)" 
+                  strokeWidth="2.5" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                />
+                <circle cx="68" cy="24" r="3" fill="url(#logoGrad)" />
+
+                <path 
+                  d="M50 48 L32 44 V37" 
+                  stroke="url(#logoGrad)" 
+                  strokeWidth="2.5" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                />
+                <circle cx="32" cy="37" r="3" fill="url(#logoGrad)" />
+
+                <path 
+                  d="M50 61 L70 58 V51" 
+                  stroke="url(#logoGrad)" 
+                  strokeWidth="2.5" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                />
+                <circle cx="70" cy="51" r="3" fill="url(#logoGrad)" />
+
+                <path 
+                  d="M50 72 L30 69 V62" 
+                  stroke="url(#logoGrad)" 
+                  strokeWidth="2.5" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                />
+                <circle cx="30" cy="62" r="3" fill="url(#logoGrad)" />
               </svg>
             </div>
-            <span className="text-lg font-bold tracking-wider text-[#03e38c] terminal-font transition-all group-hover:text-[#00e5ff] group-hover:drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">
-              ecobreaker
+            <span className="brand-font text-xl font-bold tracking-wide bg-gradient-to-r from-[#00e5ff] to-[#3b82f6] bg-clip-text text-transparent transition-all group-hover:drop-shadow-[0_0_8px_rgba(0,229,255,0.4)]">
+              EcoBreaker
             </span>
           </Link>
         </div>

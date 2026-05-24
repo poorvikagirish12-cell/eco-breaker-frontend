@@ -78,18 +78,67 @@ export default function RegisterPage() {
           {/* Logo & lowercase title */}
           <div className="text-center mb-6 border-b border-[rgba(3,227,140,0.1)] pb-4">
             <div className="inline-flex items-center gap-2 mb-2">
-              <div className="p-1 rounded bg-[#0a1814] border border-[rgba(3,227,140,0.3)] shadow-[0_0_8px_rgba(3,227,140,0.1)]">
-                <svg className="w-8 h-8 text-[#03e38c] filter drop-shadow-[0_0_4px_rgba(3,227,140,0.5)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M50 15 C80 15, 85 50, 50 85 C15 50, 20 15, 50 15 Z" stroke="currentColor" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" />
-                  <path d="M50 15 V85" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-                  <path d="M50 35 L70 30 V23" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                  <circle cx="70" cy="23" r="3.5" fill="currentColor" />
-                  <path d="M50 48 L30 43 V36" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-                  <circle cx="30" cy="36" r="3.5" fill="currentColor" />
+              <div className="p-1 rounded bg-[#070d0b] border border-[rgba(0,229,255,0.2)] shadow-[0_0_10px_rgba(0,229,255,0.05)]">
+                {/* Custom SVG Circuit Leaf Logo with Blue-Cyan Gradient */}
+                <svg className="w-8 h-8 filter drop-shadow-[0_0_6px_rgba(0,229,255,0.3)]" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <defs>
+                    <linearGradient id="logoGradRegister" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#00e5ff" />
+                      <stop offset="100%" stopColor="#3b82f6" />
+                    </linearGradient>
+                  </defs>
+                  <path 
+                    d="M50 10 C68 25, 78 45, 70 70 C60 90, 50 95, 50 95 C50 95, 40 90, 30 70 C22 45, 32 25, 50 10 Z" 
+                    stroke="url(#logoGradRegister)" 
+                    strokeWidth="4.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                  />
+                  <path 
+                    d="M50 20 V82" 
+                    stroke="url(#logoGradRegister)" 
+                    strokeWidth="3.5" 
+                    strokeLinecap="round" 
+                  />
+                  <path 
+                    d="M50 35 L68 31 V24" 
+                    stroke="url(#logoGradRegister)" 
+                    strokeWidth="2.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                  />
+                  <circle cx="68" cy="24" r="3" fill="url(#logoGradRegister)" />
+
+                  <path 
+                    d="M50 48 L32 44 V37" 
+                    stroke="url(#logoGradRegister)" 
+                    strokeWidth="2.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                  />
+                  <circle cx="32" cy="37" r="3" fill="url(#logoGradRegister)" />
+
+                  <path 
+                    d="M50 61 L70 58 V51" 
+                    stroke="url(#logoGradRegister)" 
+                    strokeWidth="2.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                  />
+                  <circle cx="70" cy="51" r="3" fill="url(#logoGradRegister)" />
+
+                  <path 
+                    d="M50 72 L30 69 V62" 
+                    stroke="url(#logoGradRegister)" 
+                    strokeWidth="2.5" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                  />
+                  <circle cx="30" cy="62" r="3" fill="url(#logoGradRegister)" />
                 </svg>
               </div>
-              <span className="text-xl font-bold tracking-wider text-[#03e38c]">
-                ecobreaker
+              <span className="brand-font text-2xl font-bold tracking-wide bg-gradient-to-r from-[#00e5ff] to-[#3b82f6] bg-clip-text text-transparent">
+                EcoBreaker
               </span>
             </div>
             <h1 className="text-xs font-semibold text-[#708078] uppercase mt-1">UPLINK_CONSOLE: ACCOUNT_PROVISION</h1>

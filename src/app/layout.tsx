@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Share_Tech_Mono } from "next/font/google";
+import { Space_Grotesk, Share_Tech_Mono, Dancing_Script } from "next/font/google";
 import "./globals.css";
 
 const spaceGrotesk = Space_Grotesk({
@@ -12,6 +12,12 @@ const shareTechMono = Share_Tech_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
   weight: ["400"],
+});
+
+const dancingScript = Dancing_Script({
+  subsets: ["latin"],
+  variable: "--font-cursive",
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -27,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${spaceGrotesk.variable} ${shareTechMono.variable} font-sans antialiased bg-[#070d0b] text-[#c9d1c9]`}
+        className={`${spaceGrotesk.variable} ${shareTechMono.variable} ${dancingScript.variable} font-sans antialiased bg-[#070d0b] text-[#c9d1c9]`}
       >
         {children}
       </body>
