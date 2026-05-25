@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { BASE_URL } from "@/lib/api";
 
 interface Tag {
@@ -205,10 +206,19 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
             </div>
           </div>
 
-          {/* Date + views */}
+          {/* Date + views + read link */}
           <div className="flex items-center justify-between text-[10px] italic text-[#475569]">
             <span>{relativeDate(article.published_at)}</span>
-            <span>{article.view_count.toLocaleString()} views</span>
+            <div className="flex items-center gap-3">
+              <span>{article.view_count.toLocaleString()} views</span>
+              <Link
+                href={`/article/${article.article_id}`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-[#38bdf8] hover:text-[#7dd3fc] font-semibold transition-colors flex items-center gap-0.5"
+              >
+                Read →
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -277,6 +287,13 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
                   }`}>
                   🔖 Save
                 </button>
+                <Link
+                  href={`/article/${article.article_id}`}
+                  onClick={closeArticle}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs italic rounded-lg border border-[rgba(56,189,248,0.2)] text-[#38bdf8] hover:bg-[rgba(56,189,248,0.08)] transition-all font-semibold"
+                >
+                  Open Full Article →
+                </Link>
               </div>
             </div>
           </div>

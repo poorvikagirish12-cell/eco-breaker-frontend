@@ -66,6 +66,16 @@ export default function LoginPage() {
         localStorage.setItem("user-email", email);
         localStorage.setItem("user-name", data.username || email.split("@")[0]);
         localStorage.setItem("is-authenticated", "true");
+        // Check admin status
+        try {
+          const profileRes = await fetch(`${BASE_URL}/api/users/me`, {
+            headers: { Authorization: `Bearer ${data.token}` }
+          });
+          if (profileRes.ok) {
+            const profile = await profileRes.json();
+            localStorage.setItem("is-admin", profile.is_admin ? "true" : "false");
+          }
+        } catch {}
         router.push("/feed");
       } else {
         setError("Invalid email or password. Please try again.");

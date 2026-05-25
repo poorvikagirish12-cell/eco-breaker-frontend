@@ -207,3 +207,27 @@
   50%       { opacity: 1; }
 }
 .pulse-slow { animation: pulse-slow 2.4s infinite ease-in-out; }
+
+/* ── Article reading styles ── */
+.article-content {
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: #94a3b8;
+}
+.article-content p {
+  margin-bottom: 1.4rem;
+}
+.article-content strong { color: #e2e8f0; }
+.article-content em { color: #cbd5e1; }
+
+/* ── Shimmer skeleton ── */
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton {
+  background: linear-gradient(90deg, #0f172a 25%, #1e293b 50%, #0f172a 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: 8px;
+}

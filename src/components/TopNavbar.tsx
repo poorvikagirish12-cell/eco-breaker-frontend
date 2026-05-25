@@ -80,12 +80,15 @@ export function TopNavbar() {
   const [userEmail, setUserEmail] = useState("");
   const [searchValue, setSearchValue] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     const name = localStorage.getItem("user-name");
     const email = localStorage.getItem("user-email");
+    const admin = localStorage.getItem("is-admin") === "true";
     if (name) setUserName(name);
     if (email) setUserEmail(email);
+    setIsAdmin(admin);
   }, []);
 
   const handleLogout = async () => {
@@ -96,6 +99,7 @@ export function TopNavbar() {
     localStorage.removeItem("user-name");
     localStorage.removeItem("user-email");
     localStorage.removeItem("is-authenticated");
+    localStorage.removeItem("is-admin");
     router.push("/login");
   };
 
@@ -115,6 +119,7 @@ export function TopNavbar() {
   const navLinks = [
     { href: "/feed", label: "Browse Feed" },
     { href: "/write", label: "Write Blog" },
+    ...(isAdmin ? [{ href: "/admin", label: "Admin" }] : []),
   ];
 
   return (
@@ -202,9 +207,13 @@ export function TopNavbar() {
                 {navLinks.map(({ href, label }) => (
                   <Link key={href} href={href}
                     className="flex items-center gap-2 px-2.5 py-1.5 text-xs italic text-[#94a3b8] hover:text-[#38bdf8] hover:bg-[#020617] rounded-lg transition-colors">
-                    {label === "Browse Feed" ? "📰" : "✍️"} {label}
+                    {label === "Browse Feed" ? "📰" : label === "Write Blog" ? "✍️" : label === "Admin" ? "⚙️" : "🔗"} {label}
                   </Link>
                 ))}
+                <Link href="/feed?saved=1"
+                  className="flex items-center gap-2 px-2.5 py-1.5 text-xs italic text-[#94a3b8] hover:text-[#38bdf8] hover:bg-[#020617] rounded-lg transition-colors">
+                  🔖 Saved Articles
+                </Link>
                 <button
                   onClick={handleLogout}
                   id="btn-logout"

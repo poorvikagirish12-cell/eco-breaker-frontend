@@ -52,6 +52,8 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
+  const [registeredEmail, setRegisteredEmail] = useState("");
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -79,7 +81,8 @@ export default function RegisterPage() {
         localStorage.setItem("user-name", username);
         localStorage.setItem("auth-token", data.token || "");
         localStorage.setItem("is-authenticated", "true");
-        router.push("/feed");
+        setRegisteredEmail(email);
+        setEmailSent(true);
       } else {
         setError("Registration failed. This email may already be in use.");
       }
@@ -89,6 +92,73 @@ export default function RegisterPage() {
       setIsLoading(false);
     }
   };
+
+  // ── Email-sent confirmation screen ──────────────────────────
+  if (emailSent) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center px-4 relative overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none"
+          style={{ background: "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(56,189,248,0.07) 0%, transparent 70%)" }} />
+        <div className="relative w-full max-w-md fade-up">
+          <div className="bg-[#0f172a] border border-[rgba(56,189,248,0.18)] rounded-2xl p-8 shadow-2xl text-center">
+
+            {/* Mail icon */}
+            <div className="flex justify-center mb-6">
+              <div className="w-20 h-20 rounded-2xl flex items-center justify-center text-4xl"
+                style={{ background: "linear-gradient(135deg,rgba(14,165,233,0.12),rgba(59,130,246,0.08))",
+                         border: "1px solid rgba(56,189,248,0.2)" }}>
+                ✉️
+              </div>
+            </div>
+
+            <h1 className="text-2xl font-bold italic text-[#e2e8f0] mb-3">Check your email!</h1>
+            <p className="text-sm italic text-[#94a3b8] leading-relaxed mb-2">
+              We sent a verification link to:
+            </p>
+            <p className="text-sm font-bold italic text-[#38bdf8] mb-6 bg-[rgba(56,189,248,0.08)] border border-[rgba(56,189,248,0.15)] rounded-xl px-4 py-2">
+              {registeredEmail}
+            </p>
+
+            <div className="bg-[#0f172a] border border-[rgba(56,189,248,0.12)] rounded-xl p-4 mb-6 text-left space-y-2">
+              <p className="text-xs italic text-[#64748b] flex items-start gap-2">
+                <span className="text-[#38bdf8] flex-shrink-0">①</span>
+                Open the email and click <strong className="text-[#94a3b8]">"Verify My Email"</strong>
+              </p>
+              <p className="text-xs italic text-[#64748b] flex items-start gap-2">
+                <span className="text-[#38bdf8] flex-shrink-0">②</span>
+                You'll instantly get <strong className="text-[#94a3b8]">full author access</strong> to write & publish
+              </p>
+              <p className="text-xs italic text-[#64748b] flex items-start gap-2">
+                <span className="text-[#38bdf8] flex-shrink-0">③</span>
+                The link expires in <strong className="text-[#94a3b8]">24 hours</strong>
+              </p>
+            </div>
+
+            <button
+              onClick={() => router.push("/feed")}
+              className="w-full py-2.5 rounded-xl text-sm italic font-bold text-white mb-3 transition-all"
+              style={{ background: "linear-gradient(135deg,#0ea5e9,#3b82f6)", boxShadow: "0 4px 20px rgba(14,165,233,0.25)" }}
+            >
+              Browse the Feed →
+            </button>
+
+            <p className="text-xs italic text-[#475569]">
+              Didn&apos;t get the email?{" "}
+              <button
+                onClick={async () => {
+                  await fetch(`${BASE_URL}/api/auth/resend-verification?email=${encodeURIComponent(registeredEmail)}`);
+                  alert("A new verification link has been sent!");
+                }}
+                className="text-[#38bdf8] hover:text-[#7dd3fc] transition-colors font-semibold"
+              >
+                Resend it
+              </button>
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#020617] flex items-center justify-center px-4 py-10 relative overflow-hidden">

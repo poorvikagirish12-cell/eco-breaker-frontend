@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { TopNavbar } from "@/components/TopNavbar";
 import { ArticleCard } from "@/components/ArticleCard";
 import { BASE_URL } from "@/lib/api";
@@ -14,16 +16,38 @@ interface Article {
 interface TagAffinity { name: string; affinity_score: number; }
 interface HistoryItem { article_id: number; title: string; viewed_at: string; view_duration_seconds: number; }
 
-export default function FeedPage() {
+function relativeDate(dateStr?: string) {
+  if (!dateStr) return "";
+  const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+  if (diff === 0) return "Today";
+  if (diff === 1) return "Yesterday";
+  if (diff < 30) return `${diff}d ago`;
+  return `${Math.floor(diff / 30)}mo ago`;
+}
+
+function readTime(content?: string) {
+  if (!content) return "1 min";
+  return `${Math.max(1, Math.ceil(content.trim().split(/\s+/).length / 200))} min`;
+}
+
+type FeedTab = "personalized" | "global" | "saved";
+
+function FeedContent() {
+  const searchParams = useSearchParams();
   const [articles, setArticles] = useState<Article[]>([]);
+  const [savedArticles, setSavedArticles] = useState<Article[]>([]);
   const [tags, setTags] = useState<Tag[]>([]);
   const [preferences, setPreferences] = useState<TagAffinity[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [activeTab, setActiveTab] = useState<"personalized" | "global">("personalized");
+  const [activeTab, setActiveTab] = useState<FeedTab>(
+    searchParams.get("saved") === "1" ? "saved" : "personalized"
+  );
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState<number | null>(null);
   const [sortBy, setSortBy] = useState<"newest" | "trending">("newest");
   const [loading, setLoading] = useState(false);
+  const [newsletterEmail, setNewsletterEmail] = useState("");
+  const [newsletterSent, setNewsletterSent] = useState(false);
 
   const getHeaders = useCallback((): Record<string, string> => {
     const token = typeof window !== "undefined" ? localStorage.getItem("auth-token") : null;
@@ -48,6 +72,12 @@ export default function FeedPage() {
     setLoading(true);
     const h = getHeaders();
     try {
+      if (activeTab === "saved") {
+        const r = await fetch(`${BASE_URL}/api/users/me/saved-articles`, { headers: h });
+        if (r.ok) setSavedArticles(await r.json());
+        setLoading(false);
+        return;
+      }
       let url = `${BASE_URL}/api/feed`;
       if (activeTab === "global") {
         const p = new URLSearchParams();
@@ -86,6 +116,11 @@ export default function FeedPage() {
 
   const maxScore = Math.max(...preferences.map(p => p.affinity_score), 1);
 
+  // Hero article = highest view count from current list
+  const displayedArticles = activeTab === "saved" ? savedArticles : articles;
+  const heroArticle = activeTab === "global" && displayedArticles.length > 0 ? displayedArticles[0] : null;
+  const gridArticles = heroArticle ? displayedArticles.slice(1) : displayedArticles;
+
   return (
     <div className="min-h-screen bg-[#020617] text-[#e2e8f0] flex flex-col">
       <TopNavbar />
@@ -102,18 +137,22 @@ export default function FeedPage() {
 
         {/* ── Mode Tabs ── */}
         <div className="flex items-center gap-1 bg-[#0f172a] border border-[rgba(56,189,248,0.12)] rounded-xl p-1 w-fit mb-6">
-          {(["personalized", "global"] as const).map((tab) => (
+          {([
+            { id: "personalized", label: "✦ For You" },
+            { id: "global", label: "🌐 All Articles" },
+            { id: "saved", label: "🔖 Saved" },
+          ] as const).map(({ id, label }) => (
             <button
-              key={tab}
-              id={`tab-${tab}`}
-              onClick={() => { setActiveTab(tab); setSelectedTag(null); }}
+              key={id}
+              id={`tab-${id}`}
+              onClick={() => { setActiveTab(id); setSelectedTag(null); }}
               className={`px-5 py-2 text-sm italic font-semibold rounded-lg transition-all ${
-                activeTab === tab
+                activeTab === id
                   ? "bg-gradient-to-r from-[#0ea5e9] to-[#3b82f6] text-white shadow-lg"
                   : "text-[#64748b] hover:text-[#e2e8f0]"
               }`}
             >
-              {tab === "personalized" ? "✦ For You" : "🌐 All Articles"}
+              {label}
             </button>
           ))}
         </div>
@@ -126,7 +165,6 @@ export default function FeedPage() {
             {/* Global-mode controls */}
             {activeTab === "global" && (
               <div className="flex flex-wrap items-center gap-3">
-                {/* Sort */}
                 <select
                   id="select-sort"
                   value={sortBy}
@@ -136,8 +174,6 @@ export default function FeedPage() {
                   <option value="newest">Newest First</option>
                   <option value="trending">Trending</option>
                 </select>
-
-                {/* Tag filters from backend */}
                 <div className="flex flex-wrap gap-2">
                   <button
                     onClick={() => setSelectedTag(null)}
@@ -179,28 +215,97 @@ export default function FeedPage() {
               </div>
             )}
 
-            {/* Articles Grid */}
+            {/* Saved mode notice */}
+            {activeTab === "saved" && (
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-[#0f172a] border border-[rgba(56,189,248,0.12)]">
+                <span className="text-2xl">🔖</span>
+                <div>
+                  <p className="text-sm italic font-semibold text-[#38bdf8]">Your Saved Articles</p>
+                  <p className="text-xs italic text-[#64748b] mt-0.5">Articles you bookmarked for later reading.</p>
+                </div>
+              </div>
+            )}
+
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[1, 2, 3, 4].map((i) => (
                   <div key={i} className="h-56 bg-[#0f172a] rounded-2xl border border-[rgba(56,189,248,0.08)] animate-pulse" />
                 ))}
               </div>
-            ) : articles.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {articles.map((article) => (
-                  <ArticleCard
-                    key={article.article_id}
-                    article={article}
-                    onInteractionChange={loadSidebar}
-                  />
-                ))}
-              </div>
+            ) : displayedArticles.length > 0 ? (
+              <>
+                {/* Hero Article — only in global mode with results */}
+                {heroArticle && (
+                  <Link
+                    href={`/article/${heroArticle.article_id}`}
+                    className="block group relative bg-[#0f172a] border border-[rgba(56,189,248,0.15)] rounded-2xl overflow-hidden hover:border-[rgba(56,189,248,0.35)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.1)] transition-all duration-300"
+                  >
+                    {/* Gradient accent top */}
+                    <div className="h-1.5 w-full bg-gradient-to-r from-[#38bdf8] via-[#818cf8] to-[#3b82f6]" />
+                    <div className="p-6 sm:p-8">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="text-[10px] italic font-bold px-2.5 py-1 rounded-full bg-[rgba(56,189,248,0.1)] text-[#38bdf8] border border-[rgba(56,189,248,0.2)]">
+                          ✦ Featured
+                        </span>
+                        {heroArticle.tags?.slice(0, 2).map(t => (
+                          <span key={t.tag_id} className="text-[10px] italic font-semibold px-2 py-0.5 rounded-full bg-[rgba(99,102,241,0.1)] text-[#818cf8] border border-[rgba(99,102,241,0.2)]">
+                            {t.name}
+                          </span>
+                        ))}
+                      </div>
+                      <h2 className="text-2xl sm:text-3xl font-bold italic text-[#e2e8f0] group-hover:text-[#38bdf8] transition-colors leading-tight mb-3">
+                        {heroArticle.title}
+                      </h2>
+                      <p className="text-sm italic text-[#64748b] leading-relaxed line-clamp-3 mb-4">
+                        {heroArticle.content?.slice(0, 220)}…
+                      </p>
+                      <div className="flex items-center gap-4 text-xs italic text-[#475569]">
+                        <div className="flex items-center gap-1.5">
+                          <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black text-[#020617]"
+                            style={{ background: "linear-gradient(135deg,#38bdf8,#818cf8)" }}>
+                            {(heroArticle.author_name ?? "U")[0].toUpperCase()}
+                          </div>
+                          <span>{heroArticle.author_name ?? `Author #${heroArticle.author_id}`}</span>
+                          {heroArticle.is_verified_author && <span className="text-[#38bdf8]">✓</span>}
+                        </div>
+                        <span>·</span>
+                        <span>{relativeDate(heroArticle.published_at)}</span>
+                        <span>·</span>
+                        <span>{readTime(heroArticle.content)}</span>
+                        <span>·</span>
+                        <span>{heroArticle.view_count.toLocaleString()} views</span>
+                        <span className="ml-auto text-[#38bdf8] font-semibold group-hover:translate-x-1 transition-transform">
+                          Read Article →
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                )}
+
+                {/* Articles Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {gridArticles.map((article) => (
+                    <ArticleCard
+                      key={article.article_id}
+                      article={article}
+                      onInteractionChange={loadSidebar}
+                    />
+                  ))}
+                </div>
+              </>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 text-center">
-                <div className="text-5xl mb-4">📭</div>
-                <p className="text-base italic font-semibold text-[#e2e8f0]">No articles found</p>
-                <p className="text-sm italic text-[#475569] mt-1">Try switching to All Articles or adjusting your filters.</p>
+                <div className="text-5xl mb-4">
+                  {activeTab === "saved" ? "🔖" : "📭"}
+                </div>
+                <p className="text-base italic font-semibold text-[#e2e8f0]">
+                  {activeTab === "saved" ? "No saved articles yet" : "No articles found"}
+                </p>
+                <p className="text-sm italic text-[#475569] mt-1">
+                  {activeTab === "saved"
+                    ? "Save articles by clicking the bookmark icon on any article card."
+                    : "Try switching to All Articles or adjusting your filters."}
+                </p>
               </div>
             )}
           </div>
@@ -264,14 +369,54 @@ export default function FeedPage() {
               </div>
             )}
 
-            {/* Quick tip */}
+            {/* Newsletter Widget */}
+            <div className="bg-gradient-to-br from-[#0f172a] to-[#0a1628] border border-[rgba(56,189,248,0.18)] rounded-2xl p-5 relative overflow-hidden">
+              {/* Decorative glow */}
+              <div className="absolute top-0 right-0 w-24 h-24 rounded-full pointer-events-none"
+                style={{ background: "radial-gradient(circle, rgba(56,189,248,0.06) 0%, transparent 70%)" }} />
+              <h2 className="text-sm font-bold italic text-[#e2e8f0] mb-1 flex items-center gap-2">
+                <span>✉️</span> Stay in the Loop
+              </h2>
+              <p className="text-xs italic text-[#64748b] mb-4 leading-relaxed">
+                Get the week&apos;s most thought-provoking articles delivered to your inbox.
+              </p>
+              {newsletterSent ? (
+                <div className="text-center py-2">
+                  <p className="text-sm italic text-emerald-400 font-semibold">✓ You&apos;re subscribed!</p>
+                  <p className="text-[10px] italic text-[#475569] mt-1">Check your email for confirmation.</p>
+                </div>
+              ) : (
+                <form
+                  onSubmit={(e) => { e.preventDefault(); setNewsletterSent(true); }}
+                  className="space-y-2"
+                >
+                  <input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={newsletterEmail}
+                    onChange={(e) => setNewsletterEmail(e.target.value)}
+                    required
+                    className="w-full h-9 bg-[#020617] border border-[rgba(56,189,248,0.15)] rounded-lg px-3 text-xs italic text-[#e2e8f0] placeholder:text-[#475569] focus:border-[#38bdf8] focus:outline-none transition-all"
+                  />
+                  <button
+                    type="submit"
+                    className="w-full py-2 text-xs italic font-bold text-white rounded-lg transition-all"
+                    style={{ background: "linear-gradient(135deg,#0ea5e9,#3b82f6)" }}
+                  >
+                    Subscribe
+                  </button>
+                </form>
+              )}
+            </div>
+
+            {/* How It Works */}
             <div className="bg-[#0f172a] border border-[rgba(56,189,248,0.12)] rounded-2xl p-5">
               <h2 className="text-sm font-bold italic text-[#e2e8f0] mb-2 flex items-center gap-2">
                 <span className="text-[#38bdf8]">💡</span> How It Works
               </h2>
               <p className="text-xs italic text-[#64748b] leading-relaxed">
-                EcoBreaker tracks topics you read and intentionally surfaces articles from
-                <em className="text-[#94a3b8]"> different perspectives</em> to break your filter bubble.
+                EcoBreaker tracks topics you read and intentionally surfaces articles from{" "}
+                <em className="text-[#94a3b8]">different perspectives</em> to break your filter bubble.
               </p>
             </div>
           </div>
@@ -289,5 +434,17 @@ export default function FeedPage() {
         </div>
       </footer>
     </div>
+  );
+}
+
+export default function FeedPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <div className="w-10 h-10 rounded-full border-2 border-[rgba(56,189,248,0.2)] border-t-[#38bdf8] animate-spin" />
+      </div>
+    }>
+      <FeedContent />
+    </Suspense>
   );
 }
