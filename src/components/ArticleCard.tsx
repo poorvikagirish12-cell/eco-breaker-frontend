@@ -54,6 +54,28 @@ function readTime(content?: string) {
   return `${Math.max(1, Math.ceil(words / 200))} min read`;
 }
 
+/* Link rendering helper */
+function renderParagraphWithLinks(text: string) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#38bdf8] hover:underline"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
 export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
@@ -261,10 +283,18 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6">
-              <p className="text-sm italic leading-relaxed text-[#94a3b8] whitespace-pre-wrap">
-                {article.content ?? "No content available for this article."}
-              </p>
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {article.content ? (
+                article.content.split("\n\n").map((para, i) => (
+                  <p key={i} className="text-sm italic leading-relaxed text-[#94a3b8]">
+                    {renderParagraphWithLinks(para)}
+                  </p>
+                ))
+              ) : (
+                <p className="text-sm italic leading-relaxed text-[#64748b]">
+                  No content available for this article.
+                </p>
+              )}
             </div>
 
             {/* Modal footer */}

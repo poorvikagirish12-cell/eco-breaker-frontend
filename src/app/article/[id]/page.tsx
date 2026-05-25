@@ -44,6 +44,28 @@ function tagColor(name: string) {
   return { bg: "rgba(99,102,241,0.1)", color: "#818cf8", border: "rgba(99,102,241,0.3)" };
 }
 
+/* Link rendering helper */
+function renderParagraphWithLinks(text: string) {
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const parts = text.split(urlRegex);
+  return parts.map((part, index) => {
+    if (part.match(urlRegex)) {
+      return (
+        <a
+          key={index}
+          href={part}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#38bdf8] hover:underline"
+        >
+          {part}
+        </a>
+      );
+    }
+    return part;
+  });
+}
+
 export default function ArticlePage() {
   const params = useParams();
   const router = useRouter();
@@ -233,7 +255,7 @@ export default function ArticlePage() {
         <div ref={contentRef} className="article-content mb-10">
           {article.content.split("\n\n").map((para, i) => (
             <p key={i} className="mb-5 text-[#94a3b8] leading-[1.85] text-base italic">
-              {para}
+              {renderParagraphWithLinks(para)}
             </p>
           ))}
         </div>
