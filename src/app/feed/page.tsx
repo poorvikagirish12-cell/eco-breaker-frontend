@@ -256,9 +256,11 @@ function FeedContent() {
                       <h2 className="text-2xl sm:text-3xl font-bold italic text-[#e2e8f0] group-hover:text-[#38bdf8] transition-colors leading-tight mb-3">
                         {heroArticle.title}
                       </h2>
-                      <p className="text-sm italic text-[#64748b] leading-relaxed line-clamp-3 mb-4">
-                        {heroArticle.content?.slice(0, 220)}…
-                      </p>
+                      {heroArticle.content && (
+                        <p className="text-sm italic text-[#64748b] leading-relaxed line-clamp-3 mb-4">
+                          {heroArticle.content.slice(0, 220)}…
+                        </p>
+                      )}
                       <div className="flex items-center gap-4 text-xs italic text-[#475569]">
                         <div className="flex items-center gap-1.5">
                           <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black text-[#020617]"

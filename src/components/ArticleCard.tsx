@@ -87,7 +87,7 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
   const primaryTag = tags[0];
   const excerpt = article.content
     ? article.content.slice(0, 140) + (article.content.length > 140 ? "…" : "")
-    : "No preview available for this article.";
+    : "";
   const authorDisplay = article.author_name ?? `User #${article.author_id}`;
 
   const getHeaders = (): Record<string, string> => {
@@ -188,9 +188,11 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
           </h3>
 
           {/* Excerpt */}
-          <p className="text-sm italic text-[#64748b] line-clamp-3 leading-relaxed flex-grow">
-            {excerpt}
-          </p>
+          {excerpt && (
+            <p className="text-sm italic text-[#64748b] line-clamp-3 leading-relaxed flex-grow">
+              {excerpt}
+            </p>
+          )}
 
           {/* Meta */}
           <div className="flex items-center justify-between pt-2 border-t border-[rgba(56,189,248,0.07)]">
