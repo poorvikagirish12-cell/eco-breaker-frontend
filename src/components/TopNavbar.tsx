@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { BASE_URL } from "@/lib/api";
+import { Newspaper, PenTool, Shield, Bookmark, LogOut, Search } from "lucide-react";
 
 /* ── Glass Circuit Leaf Logo SVG ── */
 function EcoBreakerLogo({ size = 34 }: { size?: number }) {
@@ -149,12 +150,15 @@ export function TopNavbar() {
               key={href}
               href={href}
               id={`nav-${label.toLowerCase().replace(/\s+/g, "-")}`}
-              className={`text-sm font-semibold italic transition-all duration-150 ${
+              className={`text-sm font-semibold italic transition-all duration-150 flex items-center gap-1.5 ${
                 pathname === href
                   ? "text-[#38bdf8]"
                   : "text-[#64748b] hover:text-[#e2e8f0]"
               }`}
             >
+              {label === "Browse Feed" && <Newspaper className="w-4 h-4" />}
+              {label === "Write Blog" && <PenTool className="w-4 h-4" />}
+              {label === "Admin" && <Shield className="w-4 h-4" />}
               {label}
             </Link>
           ))}
@@ -173,9 +177,7 @@ export function TopNavbar() {
               id="nav-search"
               className="w-48 xl:w-56 h-8 pl-3 pr-8 text-sm italic bg-[#0f172a] border border-[rgba(56,189,248,0.15)] rounded-lg text-[#e2e8f0] placeholder:text-[#475569] focus:border-[#38bdf8] focus:outline-none transition-all"
             />
-            <svg className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#475569]" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
+            <Search className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[#475569]" />
           </div>
 
           {/* User avatar + dropdown */}
@@ -207,19 +209,22 @@ export function TopNavbar() {
                 {navLinks.map(({ href, label }) => (
                   <Link key={href} href={href}
                     className="flex items-center gap-2 px-2.5 py-1.5 text-xs italic text-[#94a3b8] hover:text-[#38bdf8] hover:bg-[#020617] rounded-lg transition-colors">
-                    {label === "Browse Feed" ? "📰" : label === "Write Blog" ? "✍️" : label === "Admin" ? "⚙️" : "🔗"} {label}
+                    {label === "Browse Feed" && <Newspaper className="w-3.5 h-3.5" />}
+                    {label === "Write Blog" && <PenTool className="w-3.5 h-3.5" />}
+                    {label === "Admin" && <Shield className="w-3.5 h-3.5" />}
+                    {label}
                   </Link>
                 ))}
                 <Link href="/feed?saved=1"
                   className="flex items-center gap-2 px-2.5 py-1.5 text-xs italic text-[#94a3b8] hover:text-[#38bdf8] hover:bg-[#020617] rounded-lg transition-colors">
-                  🔖 Saved Articles
+                  <Bookmark className="w-3.5 h-3.5" /> Saved Articles
                 </Link>
                 <button
                   onClick={handleLogout}
                   id="btn-logout"
                   className="w-full flex items-center gap-2 px-2.5 py-1.5 text-xs italic text-rose-400 hover:text-rose-300 hover:bg-[#020617] rounded-lg transition-colors text-left font-semibold mt-0.5"
                 >
-                  🚪 Sign Out
+                  <LogOut className="w-3.5 h-3.5" /> Sign Out
                 </button>
               </div>
             </div>

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { TopNavbar } from "@/components/TopNavbar";
 import { ArticleCard } from "@/components/ArticleCard";
 import { BASE_URL } from "@/lib/api";
+import { Lock, Brain, Leaf, Cpu, Atom, BookOpen, Globe, Landmark, Palette, Lightbulb, ChevronDown, ChevronUp } from "lucide-react";
 
 interface Tag { tag_id: number; name: string; }
 interface Article {
@@ -15,6 +16,32 @@ interface Article {
 }
 interface TagAffinity { name: string; affinity_score: number; }
 interface HistoryItem { article_id: number; title: string; viewed_at: string; view_duration_seconds: number; }
+
+function getCoverImage(tags?: Tag[]): string {
+  if (!tags || tags.length === 0) return "/images/tech.png";
+  const name = tags[0].name.toLowerCase();
+  if (name.includes("tech") || name.includes("ai") || name.includes("cyber") || name.includes("crypto") || name.includes("quantum")) return "/images/tech.png";
+  if (name.includes("nature") || name.includes("environment") || name.includes("climate") || name.includes("eco")) return "/images/nature.png";
+  if (name.includes("space") || name.includes("astro") || name.includes("cosmos")) return "/images/space.png";
+  if (name.includes("science") || name.includes("mind") || name.includes("neuro") || name.includes("psych")) return "/images/science.png";
+  if (name.includes("societ") || name.includes("business") || name.includes("econom") || name.includes("politi") || name.includes("financ")) return "/images/society.png";
+  if (name.includes("culture") || name.includes("philos") || name.includes("art") || name.includes("histor") || name.includes("ethic")) return "/images/culture.png";
+  return "/images/tech.png";
+}
+
+function getTopicIcon(name: string) {
+  const n = name.toLowerCase();
+  if (n.includes("crypto") || n.includes("secur")) return <Lock className="w-3.5 h-3.5 text-[#38bdf8]" />;
+  if (n.includes("ai") || n.includes("intellig") || n.includes("neuro") || n.includes("mind")) return <Brain className="w-3.5 h-3.5 text-[#a78bfa]" />;
+  if (n.includes("climate") || n.includes("eco") || n.includes("environment") || n.includes("nature")) return <Leaf className="w-3.5 h-3.5 text-[#34d399]" />;
+  if (n.includes("quantum") || n.includes("comput")) return <Cpu className="w-3.5 h-3.5 text-[#f472b6]" />;
+  if (n.includes("science") || n.includes("physics") || n.includes("chem")) return <Atom className="w-3.5 h-3.5 text-[#60a5fa]" />;
+  if (n.includes("politi") || n.includes("govern") || n.includes("law")) return <Landmark className="w-3.5 h-3.5 text-[#fbbf24]" />;
+  if (n.includes("culture") || n.includes("art") || n.includes("philos")) return <Palette className="w-3.5 h-3.5 text-[#f97316]" />;
+  if (n.includes("econom") || n.includes("financ") || n.includes("business")) return <Globe className="w-3.5 h-3.5 text-[#22d3ee]" />;
+  if (n.includes("space") || n.includes("astro")) return <Lightbulb className="w-3.5 h-3.5 text-[#c084fc]" />;
+  return <BookOpen className="w-3.5 h-3.5 text-[#38bdf8]" />;
+}
 
 function relativeDate(dateStr?: string) {
   if (!dateStr) return "";
@@ -48,6 +75,7 @@ function FeedContent() {
   const [loading, setLoading] = useState(false);
   const [newsletterEmail, setNewsletterEmail] = useState("");
   const [newsletterSent, setNewsletterSent] = useState(false);
+  const [showAllTopics, setShowAllTopics] = useState(false);
 
   const getHeaders = useCallback((): Record<string, string> => {
     const token = typeof window !== "undefined" ? localStorage.getItem("auth-token") : null;
@@ -240,45 +268,54 @@ function FeedContent() {
                     href={`/article/${heroArticle.article_id}`}
                     className="block group relative bg-[#0f172a] border border-[rgba(56,189,248,0.15)] rounded-2xl overflow-hidden hover:border-[rgba(56,189,248,0.35)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.1)] transition-all duration-300"
                   >
-                    {/* Gradient accent top */}
-                    <div className="h-1.5 w-full bg-gradient-to-r from-[#38bdf8] via-[#818cf8] to-[#3b82f6]" />
-                    <div className="p-6 sm:p-8">
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className="text-[10px] italic font-bold px-2.5 py-1 rounded-full bg-[rgba(56,189,248,0.1)] text-[#38bdf8] border border-[rgba(56,189,248,0.2)]">
-                          ✦ Featured
-                        </span>
-                        {heroArticle.tags?.slice(0, 2).map(t => (
-                          <span key={t.tag_id} className="text-[10px] italic font-semibold px-2 py-0.5 rounded-full bg-[rgba(99,102,241,0.1)] text-[#818cf8] border border-[rgba(99,102,241,0.2)]">
-                            {t.name}
-                          </span>
-                        ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2">
+                      {/* Cover image side */}
+                      <div className="relative h-48 md:h-full min-h-[220px] overflow-hidden">
+                        <img
+                          src={getCoverImage(heroArticle.tags)}
+                          alt=""
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0f172a]/80 hidden md:block" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] to-transparent md:hidden" />
                       </div>
-                      <h2 className="text-2xl sm:text-3xl font-bold italic text-[#e2e8f0] group-hover:text-[#38bdf8] transition-colors leading-tight mb-3">
-                        {heroArticle.title}
-                      </h2>
-                      {heroArticle.content && (
-                        <p className="text-sm italic text-[#64748b] leading-relaxed line-clamp-3 mb-4">
-                          {heroArticle.content.slice(0, 220)}…
-                        </p>
-                      )}
-                      <div className="flex items-center gap-4 text-xs italic text-[#475569]">
-                        <div className="flex items-center gap-1.5">
-                          <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black text-[#020617]"
-                            style={{ background: "linear-gradient(135deg,#38bdf8,#818cf8)" }}>
-                            {(heroArticle.author_name ?? "U")[0].toUpperCase()}
-                          </div>
-                          <span>{heroArticle.author_name ?? `Author #${heroArticle.author_id}`}</span>
-                          {heroArticle.is_verified_author && <span className="text-[#38bdf8]">✓</span>}
+                      {/* Text side */}
+                      <div className="p-6 sm:p-8 flex flex-col justify-center">
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-[10px] italic font-bold px-2.5 py-1 rounded-full bg-[rgba(56,189,248,0.1)] text-[#38bdf8] border border-[rgba(56,189,248,0.2)]">
+                            ✦ Featured
+                          </span>
+                          {heroArticle.tags?.slice(0, 2).map(t => (
+                            <span key={t.tag_id} className="text-[10px] italic font-semibold px-2 py-0.5 rounded-full bg-[rgba(99,102,241,0.1)] text-[#818cf8] border border-[rgba(99,102,241,0.2)]">
+                              {t.name}
+                            </span>
+                          ))}
                         </div>
-                        <span>·</span>
-                        <span>{relativeDate(heroArticle.published_at)}</span>
-                        <span>·</span>
-                        <span>{readTime(heroArticle.content)}</span>
-                        <span>·</span>
-                        <span>{heroArticle.view_count.toLocaleString()} views</span>
-                        <span className="ml-auto text-[#38bdf8] font-semibold group-hover:translate-x-1 transition-transform">
-                          Read Article →
-                        </span>
+                        <h2 className="text-2xl sm:text-3xl font-bold italic text-[#e2e8f0] group-hover:text-[#38bdf8] transition-colors leading-tight mb-3">
+                          {heroArticle.title}
+                        </h2>
+                        {heroArticle.content && (
+                          <p className="text-sm italic text-[#64748b] leading-relaxed line-clamp-3 mb-4">
+                            {heroArticle.content.slice(0, 220)}…
+                          </p>
+                        )}
+                        <div className="flex items-center gap-4 text-xs italic text-[#475569]">
+                          <div className="flex items-center gap-1.5">
+                            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black text-[#020617]"
+                              style={{ background: "linear-gradient(135deg,#38bdf8,#818cf8)" }}>
+                              {(heroArticle.author_name ?? "U")[0].toUpperCase()}
+                            </div>
+                            <span>{heroArticle.author_name ?? `Author #${heroArticle.author_id}`}</span>
+                            {heroArticle.is_verified_author && <span className="text-[#38bdf8]">✓</span>}
+                          </div>
+                          <span>·</span>
+                          <span>{relativeDate(heroArticle.published_at)}</span>
+                          <span>·</span>
+                          <span>{readTime(heroArticle.content)}</span>
+                          <span className="ml-auto text-[#38bdf8] font-semibold group-hover:translate-x-1 transition-transform">
+                            Read Article →
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </Link>
@@ -322,24 +359,41 @@ function FeedContent() {
               </h2>
 
               {preferences.length > 0 ? (
-                <div className="space-y-3 mb-5">
-                  {preferences.map((p) => (
-                    <div key={p.name}>
-                      <div className="flex justify-between text-xs italic mb-1">
-                        <span className="text-[#94a3b8] font-semibold">{p.name}</span>
-                        <span className="text-[#38bdf8]">{p.affinity_score} pts</span>
+                <div className="space-y-2.5 mb-5">
+                  {(showAllTopics ? preferences : preferences.slice(0, 5)).map((p) => (
+                    <div key={p.name} className="flex items-center gap-2.5">
+                      <div className="flex-shrink-0 w-7 h-7 rounded-lg bg-[#1e293b] flex items-center justify-center">
+                        {getTopicIcon(p.name)}
                       </div>
-                      <div className="w-full h-1.5 bg-[#1e293b] rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all duration-700"
-                          style={{
-                            width: `${Math.min((p.affinity_score / maxScore) * 100, 100)}%`,
-                            background: "linear-gradient(90deg,#38bdf8,#3b82f6)",
-                          }}
-                        />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between text-xs italic mb-0.5">
+                          <span className="text-[#94a3b8] font-semibold truncate">{p.name}</span>
+                          <span className="text-[#38bdf8] flex-shrink-0 ml-2">{p.affinity_score} pts</span>
+                        </div>
+                        <div className="w-full h-1 bg-[#1e293b] rounded-full overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-700"
+                            style={{
+                              width: `${Math.min((p.affinity_score / maxScore) * 100, 100)}%`,
+                              background: "linear-gradient(90deg,#38bdf8,#3b82f6)",
+                            }}
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}
+                  {preferences.length > 5 && (
+                    <button
+                      onClick={() => setShowAllTopics(!showAllTopics)}
+                      className="w-full flex items-center justify-center gap-1 py-1.5 text-[11px] italic font-semibold text-[#38bdf8] hover:text-[#7dd3fc] transition-colors"
+                    >
+                      {showAllTopics ? (
+                        <><ChevronUp className="w-3.5 h-3.5" /> See Less Topics</>
+                      ) : (
+                        <><ChevronDown className="w-3.5 h-3.5" /> See More Topics ({preferences.length - 5} more)</>
+                      )}
+                    </button>
+                  )}
                 </div>
               ) : (
                 <p className="text-xs italic text-[#475569] mb-4">Read some articles to build your profile.</p>

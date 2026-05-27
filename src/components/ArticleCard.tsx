@@ -76,6 +76,18 @@ function renderParagraphWithLinks(text: string) {
   });
 }
 
+function getCoverImage(tags?: Tag[]): string {
+  if (!tags || tags.length === 0) return "/images/tech.png";
+  const name = tags[0].name.toLowerCase();
+  if (name.includes("tech") || name.includes("ai") || name.includes("cyber") || name.includes("crypto") || name.includes("quantum")) return "/images/tech.png";
+  if (name.includes("nature") || name.includes("environment") || name.includes("climate") || name.includes("eco")) return "/images/nature.png";
+  if (name.includes("space") || name.includes("astro") || name.includes("cosmos")) return "/images/space.png";
+  if (name.includes("science") || name.includes("mind") || name.includes("neuro") || name.includes("psych")) return "/images/science.png";
+  if (name.includes("societ") || name.includes("business") || name.includes("econom") || name.includes("politi") || name.includes("financ")) return "/images/society.png";
+  if (name.includes("culture") || name.includes("philos") || name.includes("art") || name.includes("histor") || name.includes("ethic")) return "/images/culture.png";
+  return "/images/tech.png";
+}
+
 export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
@@ -163,13 +175,15 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
         onClick={openArticle}
         className="group relative flex flex-col bg-[#0f172a] border border-[rgba(56,189,248,0.1)] rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-[rgba(56,189,248,0.3)] hover:shadow-[0_8px_32px_rgba(56,189,248,0.08)] hover:-translate-y-0.5"
       >
-        {/* Top colour strip based on tag */}
-        <div className={`h-1 w-full ${
-          tagClass(primaryTag.name) === "tag-tech" ? "bg-gradient-to-r from-[#38bdf8] to-[#3b82f6]" :
-          tagClass(primaryTag.name) === "tag-politics" ? "bg-gradient-to-r from-[#a78bfa] to-[#7c3aed]" :
-          tagClass(primaryTag.name) === "tag-economics" ? "bg-gradient-to-r from-[#34d399] to-[#059669]" :
-          "bg-gradient-to-r from-[#818cf8] to-[#4f46e5]"
-        }`} />
+        {/* Cover image banner */}
+        <div className="relative h-36 w-full overflow-hidden">
+          <img
+            src={getCoverImage(article.tags)}
+            alt=""
+            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/40 to-transparent" />
+        </div>
 
         {/* Body */}
         <div className="p-5 flex flex-col flex-grow gap-3">
@@ -256,6 +270,16 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
             className="relative w-full max-w-2xl max-h-[85vh] bg-[#0f172a] border border-[rgba(56,189,248,0.2)] rounded-2xl overflow-hidden shadow-2xl flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
+            {/* Modal cover image */}
+            <div className="relative h-44 w-full overflow-hidden flex-shrink-0">
+              <img
+                src={getCoverImage(article.tags)}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/50 to-transparent" />
+            </div>
+
             {/* Modal header */}
             <div className="flex items-start justify-between p-6 border-b border-[rgba(56,189,248,0.1)]">
               <div className="flex-1 pr-4">
