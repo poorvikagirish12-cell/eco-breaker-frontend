@@ -76,16 +76,34 @@ function renderParagraphWithLinks(text: string) {
   });
 }
 
-function getCoverImage(tags?: Tag[]): string {
-  if (!tags || tags.length === 0) return "/images/tech.png";
-  const name = tags[0].name.toLowerCase();
-  if (name.includes("tech") || name.includes("ai") || name.includes("cyber") || name.includes("crypto") || name.includes("quantum")) return "/images/tech.png";
-  if (name.includes("nature") || name.includes("environment") || name.includes("climate") || name.includes("eco")) return "/images/nature.png";
-  if (name.includes("space") || name.includes("astro") || name.includes("cosmos")) return "/images/space.png";
-  if (name.includes("science") || name.includes("mind") || name.includes("neuro") || name.includes("psych")) return "/images/science.png";
-  if (name.includes("societ") || name.includes("business") || name.includes("econom") || name.includes("politi") || name.includes("financ")) return "/images/society.png";
-  if (name.includes("culture") || name.includes("philos") || name.includes("art") || name.includes("histor") || name.includes("ethic")) return "/images/culture.png";
-  return "/images/tech.png";
+function getCoverImage(tags?: Tag[], title?: string): string {
+  // Check tags first
+  if (tags && tags.length > 0) {
+    const name = tags[0].name.toLowerCase();
+    if (name.includes("tech") || name.includes("ai") || name.includes("cyber") || name.includes("crypto") || name.includes("quantum")) return "/images/tech.png";
+    if (name.includes("nature") || name.includes("environment") || name.includes("climate") || name.includes("eco")) return "/images/nature.png";
+    if (name.includes("space") || name.includes("astro") || name.includes("cosmos")) return "/images/space.png";
+    if (name.includes("science") || name.includes("mind") || name.includes("neuro") || name.includes("psych")) return "/images/science.png";
+    if (name.includes("societ") || name.includes("business") || name.includes("econom") || name.includes("politi") || name.includes("financ")) return "/images/society.png";
+    if (name.includes("culture") || name.includes("philos") || name.includes("art") || name.includes("histor") || name.includes("ethic")) return "/images/culture.png";
+    if (name.includes("remote") || name.includes("work") || name.includes("career")) return "/images/society.png";
+    if (name.includes("stoic") || name.includes("moral") || name.includes("ethics")) return "/images/culture.png";
+  }
+  // Fallback: check title keywords
+  if (title) {
+    const t = title.toLowerCase();
+    if (t.includes("tech") || t.includes("ai") || t.includes("digital") || t.includes("virtual") || t.includes("augmented") || t.includes("robot")) return "/images/tech.png";
+    if (t.includes("nature") || t.includes("climate") || t.includes("green") || t.includes("planet")) return "/images/nature.png";
+    if (t.includes("space") || t.includes("mars") || t.includes("moon") || t.includes("star")) return "/images/space.png";
+    if (t.includes("brain") || t.includes("science") || t.includes("research") || t.includes("neuro")) return "/images/science.png";
+    if (t.includes("societ") || t.includes("business") || t.includes("econom") || t.includes("work") || t.includes("market") || t.includes("remote")) return "/images/society.png";
+    if (t.includes("culture") || t.includes("philos") || t.includes("art") || t.includes("truth") || t.includes("vulnerab") || t.includes("moral")) return "/images/culture.png";
+    if (t.includes("security") || t.includes("cyber") || t.includes("hack") || t.includes("crypto")) return "/images/tech.png";
+  }
+  // Cycle through images based on a simple hash of the title
+  const images = ["/images/tech.png", "/images/nature.png", "/images/space.png", "/images/science.png", "/images/society.png", "/images/culture.png"];
+  const hash = (title || "").split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  return images[hash % images.length];
 }
 
 export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) {
@@ -178,7 +196,7 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
         {/* Cover image banner */}
         <div className="relative h-36 w-full overflow-hidden">
           <img
-            src={getCoverImage(article.tags)}
+            src={getCoverImage(article.tags, article.title)}
             alt=""
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           />
@@ -273,7 +291,7 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
             {/* Modal cover image */}
             <div className="relative h-44 w-full overflow-hidden flex-shrink-0">
               <img
-                src={getCoverImage(article.tags)}
+                src={getCoverImage(article.tags, article.title)}
                 alt=""
                 className="w-full h-full object-cover"
               />
