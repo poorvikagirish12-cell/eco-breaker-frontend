@@ -96,7 +96,7 @@ export default function RegisterPage() {
   // ── Email-sent confirmation screen ──────────────────────────
   if (emailSent) {
     return (
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center px-4 relative overflow-hidden">
+      <div className="min-h-screen bg-transparent flex items-center justify-center px-4 relative overflow-hidden">
         <div className="absolute inset-0 pointer-events-none"
           style={{ background: "radial-gradient(ellipse 70% 50% at 50% 0%, rgba(56,189,248,0.07) 0%, transparent 70%)" }} />
         <div className="relative w-full max-w-md fade-up">
@@ -161,7 +161,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center px-4 py-10 relative overflow-hidden">
+    <div className="min-h-screen bg-transparent flex items-center justify-center px-4 py-10 relative overflow-hidden">
 
       {/* Ambient glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] pointer-events-none"

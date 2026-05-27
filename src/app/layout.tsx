@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Dancing_Script, Share_Tech_Mono } from "next/font/google";
+import { Background3D } from "@/components/Background3D";
 import "./globals.css";
 
 const dancingScript = Dancing_Script({
@@ -21,12 +22,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{ children: React.ReactNode }>) {
+  }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="dark">
       <body
         className={`${dancingScript.variable} ${shareTechMono.variable} antialiased`}
       >
+        <Background3D />
         {children}
       </body>
     </html>

@@ -168,7 +168,7 @@ function FeedContent() {
   const gridArticles = heroArticle ? displayedArticles.slice(1) : displayedArticles;
 
   return (
-    <div className="min-h-screen bg-[#020617] text-[#e2e8f0] flex flex-col">
+    <div className="min-h-screen bg-transparent text-[#e2e8f0] flex flex-col">
       <TopNavbar />
 
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 py-10">
@@ -514,7 +514,7 @@ function FeedContent() {
 export default function FeedPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+      <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="w-10 h-10 rounded-full border-2 border-[rgba(56,189,248,0.2)] border-t-[#38bdf8] animate-spin" />
       </div>
     }>

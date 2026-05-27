@@ -90,7 +90,7 @@ export default function LoginPage() {
   const inputClass = "w-full h-11 bg-[#0f172a] border border-[rgba(56,189,248,0.15)] rounded-xl px-4 text-sm italic text-[#e2e8f0] placeholder:text-[#475569] focus:border-[#38bdf8] focus:outline-none focus:ring-1 focus:ring-[rgba(56,189,248,0.2)] transition-all";
 
   return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-transparent flex items-center justify-center px-4 relative overflow-hidden">
 
       {/* Ambient glow */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] rounded-full pointer-events-none"

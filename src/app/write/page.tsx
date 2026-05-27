@@ -108,7 +108,7 @@ export default function WritePage() {
   const published = articles.filter((a) => a.status === "PUBLISHED").length;
 
   return (
-    <div className="min-h-screen bg-[#020617] text-[#e2e8f0] flex flex-col">
+    <div className="min-h-screen bg-transparent text-[#e2e8f0] flex flex-col">
       <TopNavbar />
 
       <main className="flex-grow w-full max-w-7xl mx-auto px-4 sm:px-6 py-10">

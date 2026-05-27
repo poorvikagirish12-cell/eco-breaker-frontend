@@ -158,7 +158,7 @@ export default function ArticlePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#020617] flex flex-col">
+      <div className="min-h-screen bg-transparent flex flex-col">
         <TopNavbar />
         <div className="flex-grow flex items-center justify-center">
           <div className="w-10 h-10 rounded-full border-2 border-[rgba(56,189,248,0.2)] border-t-[#38bdf8] animate-spin" />
@@ -169,7 +169,7 @@ export default function ArticlePage() {
 
   if (notFound || !article) {
     return (
-      <div className="min-h-screen bg-[#020617] flex flex-col">
+      <div className="min-h-screen bg-transparent flex flex-col">
         <TopNavbar />
         <div className="flex-grow flex flex-col items-center justify-center text-center px-4">
           <div className="text-6xl mb-4">📭</div>
@@ -188,7 +188,7 @@ export default function ArticlePage() {
   const authorDisplay = article.author_name ?? `Author #${article.author_id}`;
 
   return (
-    <div className="min-h-screen bg-[#020617] text-[#e2e8f0] flex flex-col">
+    <div className="min-h-screen bg-transparent text-[#e2e8f0] flex flex-col">
       {/* Reading progress bar */}
       <div className="fixed top-0 left-0 right-0 h-0.5 z-[100] bg-[#0f172a]">
         <div

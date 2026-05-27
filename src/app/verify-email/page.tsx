@@ -155,7 +155,7 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
   return (
-    <div className="min-h-screen bg-[#020617] flex items-center justify-center px-4 relative overflow-hidden">
+    <div className="min-h-screen bg-transparent flex items-center justify-center px-4 relative overflow-hidden">
       {/* Ambient glow */}
       <div
         className="absolute inset-0 pointer-events-none"
