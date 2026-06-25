@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
-import { Dancing_Script, Share_Tech_Mono } from "next/font/google";
+import { Inter, Poppins, Share_Tech_Mono } from "next/font/google";
 import { Background3D } from "@/components/Background3D";
 import "./globals.css";
 
-const dancingScript = Dancing_Script({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-cursive",
+  variable: "--font-sans",
   weight: ["400", "500", "600", "700"],
+});
+
+const poppins = Poppins({
+  subsets: ["latin"],
+  variable: "--font-poppins",
+  weight: ["500", "600", "700"],
 });
 
 const shareTechMono = Share_Tech_Mono({
@@ -26,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body
-        className={`${dancingScript.variable} ${shareTechMono.variable} antialiased`}
+        className={`${inter.variable} ${poppins.variable} ${shareTechMono.variable} antialiased`}
       >
         <Background3D />
         {children}

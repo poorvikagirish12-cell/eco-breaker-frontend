@@ -372,7 +372,7 @@ function FeedContent() {
 
             {/* Tag Affinity Panel */}
             <div id="preferences" className="bg-[#0f172a] border border-[rgba(56,189,248,0.12)] rounded-2xl p-5">
-              <h2 className="text-sm font-bold italic text-[#e2e8f0] mb-4 flex items-center gap-2">
+              <h2 className="sidebar-title text-sm font-bold italic text-[#e2e8f0] mb-4 flex items-center gap-2">
                 <span className="text-[#38bdf8]">⚙</span> Your Reading Profile
               </h2>
 
@@ -429,7 +429,7 @@ function FeedContent() {
             {/* Reading History */}
             {history.length > 0 && (
               <div className="bg-[#0f172a] border border-[rgba(56,189,248,0.12)] rounded-2xl p-5">
-                <h2 className="text-sm font-bold italic text-[#e2e8f0] mb-4 flex items-center gap-2">
+                <h2 className="sidebar-title text-sm font-bold italic text-[#e2e8f0] mb-4 flex items-center gap-2">
                   <span className="text-[#38bdf8]">📖</span> Recently Read
                 </h2>
                 <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
@@ -448,7 +448,7 @@ function FeedContent() {
               {/* Decorative glow */}
               <div className="absolute top-0 right-0 w-24 h-24 rounded-full pointer-events-none"
                 style={{ background: "radial-gradient(circle, rgba(56,189,248,0.06) 0%, transparent 70%)" }} />
-              <h2 className="text-sm font-bold italic text-[#e2e8f0] mb-1 flex items-center gap-2">
+              <h2 className="sidebar-title text-sm font-bold italic text-[#e2e8f0] mb-1 flex items-center gap-2">
                 <span>✉️</span> Stay in the Loop
               </h2>
               <p className="text-xs italic text-[#64748b] mb-4 leading-relaxed">
@@ -485,7 +485,7 @@ function FeedContent() {
 
             {/* How It Works */}
             <div className="bg-[#0f172a] border border-[rgba(56,189,248,0.12)] rounded-2xl p-5">
-              <h2 className="text-sm font-bold italic text-[#e2e8f0] mb-2 flex items-center gap-2">
+              <h2 className="sidebar-title text-sm font-bold italic text-[#e2e8f0] mb-2 flex items-center gap-2">
                 <span className="text-[#38bdf8]">💡</span> How It Works
               </h2>
               <p className="text-xs italic text-[#64748b] leading-relaxed">

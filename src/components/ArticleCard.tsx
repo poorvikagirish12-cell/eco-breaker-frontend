@@ -215,7 +215,7 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
           </div>
 
           {/* Title */}
-          <h3 className="text-[15px] font-bold italic leading-snug text-[#e2e8f0] group-hover:text-[#38bdf8] transition-colors line-clamp-2">
+          <h3 className="article-title text-[15px] font-bold italic leading-snug text-[#e2e8f0] group-hover:text-[#38bdf8] transition-colors line-clamp-2">
             {article.title}
           </h3>
 
