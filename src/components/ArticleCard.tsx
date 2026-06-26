@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { BASE_URL } from "@/lib/api";
 
 interface Tag {
@@ -108,6 +109,7 @@ function getCoverImage(tags?: Tag[], title?: string): string {
 }
 
 export function ArticleCard({ article, onInteractionChange, layout = "grid" }: ArticleCardProps) {
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -130,23 +132,7 @@ export function ArticleCard({ article, onInteractionChange, layout = "grid" }: A
   };
 
   const openArticle = () => {
-    setIsOpen(true);
-    setStartTime(Date.now());
-  };
-
-  const closeArticle = async () => {
-    setIsOpen(false);
-    if (startTime) {
-      const secs = Math.max(1, Math.round((Date.now() - startTime) / 1000));
-      try {
-        await fetch(`${BASE_URL}/api/interactions/view?article_id=${article.article_id}`, {
-          method: "POST",
-          headers: getHeaders(),
-          body: JSON.stringify({ view_duration_seconds: secs }),
-        });
-        onInteractionChange?.();
-      } catch {}
-    }
+    router.push(`/article/${article.article_id}`);
   };
 
   const handleLike = async (e: React.MouseEvent) => {
@@ -334,101 +320,6 @@ export function ArticleCard({ article, onInteractionChange, layout = "grid" }: A
                 >
                   Read →
                 </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Article Detail Modal ── */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(2,6,23,0.3)", backdropFilter: "blur(4px)" }}
-          onClick={closeArticle}>
-          <div
-            className="relative w-full max-w-2xl max-h-[85vh] bg-[#0f172a]/70 backdrop-blur-xl border border-[rgba(56,189,248,0.25)] rounded-2xl overflow-hidden shadow-2xl flex flex-col"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal cover image */}
-            <div className="relative h-44 w-full overflow-hidden flex-shrink-0">
-              <img
-                src={getCoverImage(article.tags, article.title)}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/50 to-transparent" />
-            </div>
-
-            {/* Modal header */}
-            <div className="flex items-start justify-between p-6 border-b border-[rgba(56,189,248,0.1)]">
-              <div className="flex-1 pr-4">
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {tags.map((tag) => (
-                    <span key={tag.tag_id} className={`text-[10px] font-semibold italic px-2 py-0.5 rounded-full ${tagClass(tag.name)}`}>
-                      {tag.name}
-                    </span>
-                  ))}
-                </div>
-                <h2 className="text-xl font-bold italic text-[#e2e8f0] leading-snug">{article.title}</h2>
-                <div className="flex items-center gap-3 mt-2 text-xs italic text-[#64748b]">
-                  <span>By {authorDisplay}</span>
-                  {article.is_verified_author && <span className="text-[#38bdf8]">✓ Verified</span>}
-                  <span>·</span>
-                  <span>{relativeDate(article.published_at)}</span>
-                  <span>·</span>
-                  <span>{readTime(article.content)}</span>
-                </div>
-              </div>
-              <button onClick={closeArticle}
-                className="flex-shrink-0 p-1.5 text-[#475569] hover:text-[#e2e8f0] hover:bg-[#1e293b] rounded-lg transition-all">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
-              {article.content ? (
-                article.content.split("\n\n").map((para, i) => (
-                  <p key={i} className="text-sm italic leading-relaxed text-[#94a3b8]">
-                    {renderParagraphWithLinks(para)}
-                  </p>
-                ))
-              ) : (
-                <p className="text-sm italic leading-relaxed text-[#64748b]">
-                  No content available for this article.
-                </p>
-              )}
-            </div>
-
-            {/* Modal footer */}
-            <div className="flex items-center justify-between p-4 border-t border-[rgba(56,189,248,0.1)] bg-[#020617]/30">
-              <span className="text-xs italic text-[#475569]">{article.view_count.toLocaleString()} views</span>
-              <div className="flex items-center gap-2">
-                <button onClick={handleLike} disabled={loading}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs italic rounded-lg border transition-all ${
-                    isLiked
-                      ? "border-rose-400/40 text-rose-400 bg-rose-400/10"
-                      : "border-[rgba(56,189,248,0.15)] text-[#64748b] hover:text-[#e2e8f0] hover:border-[rgba(56,189,248,0.3)]"
-                  }`}>
-                  ♥ Like
-                </button>
-                <button onClick={handleSave} disabled={loading}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs italic rounded-lg border transition-all ${
-                    isSaved
-                      ? "border-[#38bdf8]/40 text-[#38bdf8] bg-[#38bdf8]/10"
-                      : "border-[rgba(56,189,248,0.15)] text-[#64748b] hover:text-[#e2e8f0] hover:border-[rgba(56,189,248,0.3)]"
-                  }`}>
-                  🔖 Save
-                </button>
-                <Link
-                  href={`/article/${article.article_id}`}
-                  onClick={closeArticle}
-                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs italic rounded-lg border border-[rgba(56,189,248,0.2)] text-[#38bdf8] hover:bg-[rgba(56,189,248,0.08)] transition-all font-semibold"
-                >
-                  Open Full Article →
-                </Link>
               </div>
             </div>
           </div>

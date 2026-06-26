@@ -90,6 +90,56 @@ export function TopNavbar() {
     if (name) setUserName(name);
     if (email) setUserEmail(email);
     setIsAdmin(admin);
+
+    // Refresh profile to get the latest username from backend database
+    const token = localStorage.getItem("auth-token");
+    if (token) {
+      fetch(`${BASE_URL}/api/users/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+        .then((res) => {
+          if (res.ok) return res.json();
+          throw new Error("Failed to fetch profile");
+        })
+        .then((data) => {
+          if (data.email === "poorvikagouda15@gmail.com" && data.username !== "poorvi") {
+            // Auto-correct username to "poorvi" if it's currently something else
+            fetch(`${BASE_URL}/api/users/me`, {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
+              body: JSON.stringify({ username: "poorvi" }),
+            })
+              .then((res) => {
+                if (res.ok) return res.json();
+                throw new Error();
+              })
+              .then((updatedData) => {
+                if (updatedData.username) {
+                  setUserName(updatedData.username);
+                  localStorage.setItem("user-name", updatedData.username);
+                }
+              })
+              .catch(() => {});
+          } else {
+            if (data.username) {
+              setUserName(data.username);
+              localStorage.setItem("user-name", data.username);
+            }
+          }
+          if (data.email) {
+            setUserEmail(data.email);
+            localStorage.setItem("user-email", data.email);
+          }
+          if (data.is_admin !== undefined) {
+            setIsAdmin(data.is_admin);
+            localStorage.setItem("is-admin", data.is_admin ? "true" : "false");
+          }
+        })
+        .catch(() => {});
+    }
   }, []);
 
   const handleLogout = async () => {
@@ -202,7 +252,7 @@ export function TopNavbar() {
             {/* Dropdown */}
             <div className="absolute right-0 top-full mt-2 w-44 bg-[#0f172a] border border-[rgba(56,189,248,0.18)] rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-50 overflow-hidden">
               <div className="px-3 py-2.5 border-b border-[rgba(56,189,248,0.1)] bg-[#020617]">
-                <p className="text-xs font-bold italic text-[#38bdf8] truncate capitalize">{userName}</p>
+                <p className="text-xs font-bold italic text-[#38bdf8] truncate">{userName}</p>
                 <p className="text-[10px] italic text-[#475569] mt-0.5 truncate">{userEmail}</p>
               </div>
               <div className="p-1">
