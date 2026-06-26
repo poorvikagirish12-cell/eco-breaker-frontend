@@ -237,9 +237,6 @@ export default function ArticlePage() {
             </div>
             <div>
               <p className="text-sm italic font-semibold text-[#94a3b8]">{authorDisplay}</p>
-              {article.is_verified_author && (
-                <p className="text-[10px] italic text-[#38bdf8]">✓ Verified Author</p>
-              )}
             </div>
           </div>
           <div className="flex items-center gap-3 text-xs italic text-[#475569] ml-auto">

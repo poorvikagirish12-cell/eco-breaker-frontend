@@ -221,7 +221,6 @@ export function ArticleCard({ article, onInteractionChange, layout = "grid" }: A
                     {authorDisplay[0]?.toUpperCase() ?? "U"}
                   </div>
                   <span>{authorDisplay}</span>
-                  {article.is_verified_author && <span className="text-[#38bdf8]">✓</span>}
                 </div>
                 <span>·</span>
                 <span>{relativeDate(article.published_at)}</span>
@@ -283,11 +282,6 @@ export function ArticleCard({ article, onInteractionChange, layout = "grid" }: A
                   {authorDisplay[0]?.toUpperCase() ?? "U"}
                 </div>
                 <span className="text-xs italic text-[#94a3b8] truncate max-w-[100px]">{authorDisplay}</span>
-                {article.is_verified_author && (
-                  <svg className="w-3.5 h-3.5 text-[#38bdf8] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
               </div>
 
               {/* Right side: read time + actions */}
