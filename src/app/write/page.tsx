@@ -45,7 +45,7 @@ export default function WritePage() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const handleSubmit = async (e?: React.FormEvent) => {
+  const handleSubmit = async (action: "draft" | "publish", e?: React.FormEvent) => {
     if (e) e.preventDefault();
     if (!title.trim() || !content.trim()) return;
     setIsSubmitting(true);
@@ -64,7 +64,18 @@ export default function WritePage() {
             body: JSON.stringify({ tag_id: tagId }),
           });
         }
-        setMessage({ type: "success", text: "Article saved as draft! You can publish it from your articles list below." });
+        if (action === "publish") {
+          const pubRes = await fetch(`${BASE_URL}/api/articles/${art.article_id}/publish`, {
+            method: "PATCH", headers: getHeaders(),
+          });
+          if (pubRes.ok) {
+            setMessage({ type: "success", text: "Article published successfully!" });
+          } else {
+            setMessage({ type: "success", text: "Article saved as draft, but failed to publish." });
+          }
+        } else {
+          setMessage({ type: "success", text: "Article saved as draft! You can publish it from your articles list below." });
+        }
         setTitle(""); setContent(""); setSelectedTags([]);
         loadData();
       } else {
@@ -136,7 +147,7 @@ export default function WritePage() {
             )}
 
             {/* Write form */}
-            <form onSubmit={handleSubmit} className="bg-[#0f172a] border border-[rgba(56,189,248,0.12)] rounded-2xl overflow-hidden">
+            <form onSubmit={(e) => e.preventDefault()} className="bg-[#0f172a]/60 backdrop-blur-md border border-[rgba(56,189,248,0.12)] rounded-2xl overflow-hidden">
 
               {/* Form header */}
               <div className="flex items-center justify-between px-5 py-3 border-b border-[rgba(56,189,248,0.08)] bg-[#020617]/40">
@@ -208,13 +219,23 @@ export default function WritePage() {
                 {/* Submit */}
                 <div className="flex gap-3 pt-2">
                   <button
-                    type="submit"
+                    type="button"
+                    onClick={(e) => handleSubmit("draft", e)}
                     disabled={isSubmitting || !title.trim() || !content.trim()}
                     id="btn-save-draft"
+                    className="flex-1 h-11 rounded-xl text-sm italic font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-[rgba(56,189,248,0.2)] bg-transparent hover:bg-[rgba(56,189,248,0.08)]"
+                  >
+                    {isSubmitting ? "Saving…" : "Save as Draft"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={(e) => handleSubmit("publish", e)}
+                    disabled={isSubmitting || !title.trim() || !content.trim()}
+                    id="btn-publish-direct"
                     className="flex-1 h-11 rounded-xl text-sm italic font-bold text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     style={{ background: "linear-gradient(135deg,#0ea5e9,#3b82f6)", boxShadow: "0 4px 20px rgba(14,165,233,0.25)" }}
                   >
-                    {isSubmitting ? "Saving…" : "Save as Draft"}
+                    {isSubmitting ? "Publishing…" : "Publish Directly"}
                   </button>
                 </div>
               </div>
@@ -230,7 +251,7 @@ export default function WritePage() {
                 { label: "Published", value: published, color: "text-[#38bdf8]" },
                 { label: "Drafts", value: drafts, color: "text-[#f59e0b]" },
               ].map(({ label, value, color }) => (
-                <div key={label} className="bg-[#0f172a] border border-[rgba(56,189,248,0.12)] rounded-xl p-4 text-center">
+                <div key={label} className="bg-[#0f172a]/60 backdrop-blur-md border border-[rgba(56,189,248,0.12)] rounded-xl p-4 text-center">
                   <p className={`text-2xl font-bold italic ${color}`}>{value}</p>
                   <p className="text-xs italic text-[#64748b] mt-0.5">{label}</p>
                 </div>
@@ -238,7 +259,7 @@ export default function WritePage() {
             </div>
 
             {/* Filter toggle */}
-            <div className="flex gap-1 bg-[#0f172a] border border-[rgba(56,189,248,0.12)] rounded-xl p-1">
+            <div className="flex gap-1 bg-[#0f172a]/60 backdrop-blur-md border border-[rgba(56,189,248,0.12)] rounded-xl p-1">
               {[false, true].map((isDrafts) => (
                 <button
                   key={String(isDrafts)}
@@ -255,7 +276,7 @@ export default function WritePage() {
             </div>
 
             {/* Articles list */}
-            <div className="bg-[#0f172a] border border-[rgba(56,189,248,0.12)] rounded-2xl overflow-hidden">
+            <div className="bg-[#0f172a]/60 backdrop-blur-md border border-[rgba(56,189,248,0.12)] rounded-2xl overflow-hidden">
               <div className="px-4 py-3 border-b border-[rgba(56,189,248,0.08)]">
                 <h2 className="text-sm italic font-bold text-[#e2e8f0]">My Articles</h2>
               </div>

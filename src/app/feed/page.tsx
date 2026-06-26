@@ -250,7 +250,7 @@ function FeedContent() {
 
             {/* Personalized mode notice */}
             {activeTab === "personalized" && (
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-[#0f172a] border border-[rgba(56,189,248,0.12)]">
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-[#0f172a]/60 backdrop-blur-md border border-[rgba(56,189,248,0.12)]">
                 <span className="text-2xl">🔄</span>
                 <div>
                   <p className="text-sm italic font-semibold text-[#38bdf8]">Personalized for You</p>
@@ -263,7 +263,7 @@ function FeedContent() {
 
             {/* Saved mode notice */}
             {activeTab === "saved" && (
-              <div className="flex items-start gap-3 p-4 rounded-xl bg-[#0f172a] border border-[rgba(56,189,248,0.12)]">
+              <div className="flex items-start gap-3 p-4 rounded-xl bg-[#0f172a]/60 backdrop-blur-md border border-[rgba(56,189,248,0.12)]">
                 <span className="text-2xl">🔖</span>
                 <div>
                   <p className="text-sm italic font-semibold text-[#38bdf8]">Your Saved Articles</p>
@@ -282,61 +282,11 @@ function FeedContent() {
               <>
                 {/* Hero Article — only in global mode with results */}
                 {heroArticle && (
-                  <Link
-                    href={`/article/${heroArticle.article_id}`}
-                    className="block group relative bg-[#0f172a] border border-[rgba(56,189,248,0.15)] rounded-2xl overflow-hidden hover:border-[rgba(56,189,248,0.35)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.1)] transition-all duration-300"
-                  >
-                    <div className="grid grid-cols-1 md:grid-cols-2">
-                      {/* Cover image side */}
-                      <div className="relative h-48 md:h-full min-h-[220px] overflow-hidden">
-                        <img
-                          src={getCoverImage(heroArticle.tags, heroArticle.title)}
-                          alt=""
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0f172a]/80 hidden md:block" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] to-transparent md:hidden" />
-                      </div>
-                      {/* Text side */}
-                      <div className="p-6 sm:p-8 flex flex-col justify-center">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className="text-[10px] italic font-bold px-2.5 py-1 rounded-full bg-[rgba(56,189,248,0.1)] text-[#38bdf8] border border-[rgba(56,189,248,0.2)]">
-                            ✦ Featured
-                          </span>
-                          {heroArticle.tags?.slice(0, 2).map(t => (
-                            <span key={t.tag_id} className="text-[10px] italic font-semibold px-2 py-0.5 rounded-full bg-[rgba(99,102,241,0.1)] text-[#818cf8] border border-[rgba(99,102,241,0.2)]">
-                              {t.name}
-                            </span>
-                          ))}
-                        </div>
-                        <h2 className="text-2xl sm:text-3xl font-bold italic text-[#e2e8f0] group-hover:text-[#38bdf8] transition-colors leading-tight mb-3">
-                          {heroArticle.title}
-                        </h2>
-                        {heroArticle.content && (
-                          <p className="text-sm italic text-[#64748b] leading-relaxed line-clamp-3 mb-4">
-                            {heroArticle.content.slice(0, 220)}…
-                          </p>
-                        )}
-                        <div className="flex items-center gap-4 text-xs italic text-[#475569]">
-                          <div className="flex items-center gap-1.5">
-                            <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black text-[#020617]"
-                              style={{ background: "linear-gradient(135deg,#38bdf8,#818cf8)" }}>
-                              {(heroArticle.author_name ?? "U")[0].toUpperCase()}
-                            </div>
-                            <span>{heroArticle.author_name ?? `Author #${heroArticle.author_id}`}</span>
-                            {heroArticle.is_verified_author && <span className="text-[#38bdf8]">✓</span>}
-                          </div>
-                          <span>·</span>
-                          <span>{relativeDate(heroArticle.published_at)}</span>
-                          <span>·</span>
-                          <span>{readTime(heroArticle.content)}</span>
-                          <span className="ml-auto text-[#38bdf8] font-semibold group-hover:translate-x-1 transition-transform">
-                            Read Article →
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
+                  <ArticleCard
+                    article={heroArticle}
+                    layout="hero"
+                    onInteractionChange={loadSidebar}
+                  />
                 )}
 
                 {/* Articles Grid */}
@@ -371,7 +321,7 @@ function FeedContent() {
           <div className="lg:col-span-4 space-y-5">
 
             {/* Tag Affinity Panel */}
-            <div id="preferences" className="bg-[#0f172a] border border-[rgba(56,189,248,0.12)] rounded-2xl p-5">
+            <div id="preferences" className="bg-[#0f172a]/60 backdrop-blur-md border border-[rgba(56,189,248,0.12)] rounded-2xl p-5">
               <h2 className="sidebar-title text-sm font-bold italic text-[#e2e8f0] mb-4 flex items-center gap-2">
                 <span className="text-[#38bdf8]">⚙</span> Your Reading Profile
               </h2>
@@ -428,7 +378,7 @@ function FeedContent() {
 
             {/* Reading History */}
             {history.length > 0 && (
-              <div className="bg-[#0f172a] border border-[rgba(56,189,248,0.12)] rounded-2xl p-5">
+              <div className="bg-[#0f172a]/60 backdrop-blur-md border border-[rgba(56,189,248,0.12)] rounded-2xl p-5">
                 <h2 className="sidebar-title text-sm font-bold italic text-[#e2e8f0] mb-4 flex items-center gap-2">
                   <span className="text-[#38bdf8]">📖</span> Recently Read
                 </h2>
@@ -444,7 +394,7 @@ function FeedContent() {
             )}
 
             {/* Newsletter Widget */}
-            <div className="bg-gradient-to-br from-[#0f172a] to-[#0a1628] border border-[rgba(56,189,248,0.18)] rounded-2xl p-5 relative overflow-hidden">
+            <div className="bg-[#0f172a]/60 backdrop-blur-md border border-[rgba(56,189,248,0.18)] rounded-2xl p-5 relative overflow-hidden">
               {/* Decorative glow */}
               <div className="absolute top-0 right-0 w-24 h-24 rounded-full pointer-events-none"
                 style={{ background: "radial-gradient(circle, rgba(56,189,248,0.06) 0%, transparent 70%)" }} />
@@ -484,7 +434,7 @@ function FeedContent() {
             </div>
 
             {/* How It Works */}
-            <div className="bg-[#0f172a] border border-[rgba(56,189,248,0.12)] rounded-2xl p-5">
+            <div className="bg-[#0f172a]/60 backdrop-blur-md border border-[rgba(56,189,248,0.12)] rounded-2xl p-5">
               <h2 className="sidebar-title text-sm font-bold italic text-[#e2e8f0] mb-2 flex items-center gap-2">
                 <span className="text-[#38bdf8]">💡</span> How It Works
               </h2>

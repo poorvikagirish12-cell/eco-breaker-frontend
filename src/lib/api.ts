@@ -44,12 +44,15 @@ export interface Article {
   title: string;
   content?: string;
   author_id: number;
+  author_name?: string;
+  is_verified_author?: boolean;
   view_count: number;
   status: string;
   published_at?: string;
   created_at?: string;
   tags?: Tag[];
 }
+
 
 export interface Tag {
   tag_id: number;

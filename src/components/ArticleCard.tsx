@@ -25,6 +25,7 @@ interface Article {
 interface ArticleCardProps {
   article: Article;
   onInteractionChange?: () => void;
+  layout?: "grid" | "hero";
 }
 
 /* Tag colour helper */
@@ -106,7 +107,7 @@ function getCoverImage(tags?: Tag[], title?: string): string {
   return images[hash % images.length];
 }
 
-export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) {
+export function ArticleCard({ article, onInteractionChange, layout = "grid" }: ArticleCardProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
@@ -115,8 +116,9 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
 
   const tags = article.tags?.length ? article.tags : [{ tag_id: 0, name: "General" }];
   const primaryTag = tags[0];
+  const excerptLength = layout === "hero" ? 220 : 140;
   const excerpt = article.content
-    ? article.content.slice(0, 140) + (article.content.length > 140 ? "…" : "")
+    ? article.content.slice(0, excerptLength) + (article.content.length > excerptLength ? "…" : "")
     : "";
   const authorDisplay = article.author_name ?? `User #${article.author_id}`;
 
@@ -188,104 +190,163 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
   return (
     <>
       {/* ── Card ── */}
-      <div
-        id={`article-card-${article.article_id}`}
-        onClick={openArticle}
-        className="group relative flex flex-col bg-[#0f172a] border border-[rgba(56,189,248,0.1)] rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-[rgba(56,189,248,0.3)] hover:shadow-[0_8px_32px_rgba(56,189,248,0.08)] hover:-translate-y-0.5"
-      >
-        {/* Cover image banner */}
-        <div className="relative h-36 w-full overflow-hidden">
-          <img
-            src={getCoverImage(article.tags, article.title)}
-            alt=""
-            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/40 to-transparent" />
-        </div>
-
-        {/* Body */}
-        <div className="p-5 flex flex-col flex-grow gap-3">
-          {/* Tags */}
-          <div className="flex flex-wrap gap-1.5">
-            {tags.slice(0, 3).map((tag) => (
-              <span key={tag.tag_id} className={`text-[10px] font-semibold italic px-2 py-0.5 rounded-full ${tagClass(tag.name)}`}>
-                {tag.name}
-              </span>
-            ))}
-          </div>
-
-          {/* Title */}
-          <h3 className="article-title text-[15px] font-bold italic leading-snug text-[#e2e8f0] group-hover:text-[#38bdf8] transition-colors line-clamp-2">
-            {article.title}
-          </h3>
-
-          {/* Excerpt */}
-          {excerpt && (
-            <p className="text-sm italic text-[#64748b] line-clamp-3 leading-relaxed flex-grow">
-              {excerpt}
-            </p>
-          )}
-
-          {/* Meta */}
-          <div className="flex items-center justify-between pt-2 border-t border-[rgba(56,189,248,0.07)]">
-            {/* Author */}
-            <div className="flex items-center gap-1.5 min-w-0">
-              <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] font-black text-[#020617]"
-                style={{ background: "linear-gradient(135deg,#38bdf8,#818cf8)" }}>
-                {authorDisplay[0]?.toUpperCase() ?? "U"}
+      {layout === "hero" ? (
+        /* ── Hero Card Layout ── */
+        <div
+          id={`article-card-${article.article_id}`}
+          onClick={openArticle}
+          className="block group relative bg-[#0f172a]/60 backdrop-blur-md border border-[rgba(56,189,248,0.15)] rounded-2xl overflow-hidden hover:border-[rgba(56,189,248,0.35)] hover:shadow-[0_12px_40px_rgba(56,189,248,0.1)] transition-all duration-300 cursor-pointer"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2">
+            {/* Cover image side */}
+            <div className="relative h-48 md:h-full min-h-[220px] overflow-hidden">
+              <img
+                src={getCoverImage(article.tags, article.title)}
+                alt=""
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent to-[#0f172a]/80 hidden md:block" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] to-transparent md:hidden" />
+            </div>
+            {/* Text side */}
+            <div className="p-6 sm:p-8 flex flex-col justify-center">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="text-[10px] italic font-bold px-2.5 py-1 rounded-full bg-[rgba(56,189,248,0.1)] text-[#38bdf8] border border-[rgba(56,189,248,0.2)]">
+                  ✦ Featured
+                </span>
+                {article.tags?.slice(0, 2).map((t) => (
+                  <span key={t.tag_id} className="text-[10px] italic font-semibold px-2 py-0.5 rounded-full bg-[rgba(99,102,241,0.1)] text-[#818cf8] border border-[rgba(99,102,241,0.2)]">
+                    {t.name}
+                  </span>
+                ))}
               </div>
-              <span className="text-xs italic text-[#94a3b8] truncate max-w-[100px]">{authorDisplay}</span>
-              {article.is_verified_author && (
-                <svg className="w-3.5 h-3.5 text-[#38bdf8] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
+              <h2 className="text-2xl sm:text-3xl font-bold italic text-[#e2e8f0] group-hover:text-[#38bdf8] transition-colors leading-tight mb-3">
+                {article.title}
+              </h2>
+              {excerpt && (
+                <p className="text-sm italic text-[#64748b] leading-relaxed line-clamp-3 mb-4">
+                  {excerpt}
+                </p>
               )}
-            </div>
-
-            {/* Right side: read time + actions */}
-            <div className="flex items-center gap-3 flex-shrink-0">
-              <span className="text-[10px] italic text-[#475569]">{readTime(article.content)}</span>
-              <button onClick={handleLike} disabled={loading}
-                className={`p-1.5 rounded-lg transition-all hover:bg-[#1e293b] ${isLiked ? "text-rose-400" : "text-[#475569] hover:text-[#e2e8f0]"}`}
-                title="Like">
-                <svg className="w-3.5 h-3.5" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
-                </svg>
-              </button>
-              <button onClick={handleSave} disabled={loading}
-                className={`p-1.5 rounded-lg transition-all hover:bg-[#1e293b] ${isSaved ? "text-[#38bdf8]" : "text-[#475569] hover:text-[#e2e8f0]"}`}
-                title="Save">
-                <svg className="w-3.5 h-3.5" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Date + views + read link */}
-          <div className="flex items-center justify-between text-[10px] italic text-[#475569]">
-            <span>{relativeDate(article.published_at)}</span>
-            <div className="flex items-center gap-3">
-              <span>{article.view_count.toLocaleString()} views</span>
-              <Link
-                href={`/article/${article.article_id}`}
-                onClick={(e) => e.stopPropagation()}
-                className="text-[#38bdf8] hover:text-[#7dd3fc] font-semibold transition-colors flex items-center gap-0.5"
-              >
-                Read →
-              </Link>
+              <div className="flex items-center gap-4 text-xs italic text-[#475569]">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-black text-[#020617]"
+                    style={{ background: "linear-gradient(135deg,#38bdf8,#818cf8)" }}>
+                    {authorDisplay[0]?.toUpperCase() ?? "U"}
+                  </div>
+                  <span>{authorDisplay}</span>
+                  {article.is_verified_author && <span className="text-[#38bdf8]">✓</span>}
+                </div>
+                <span>·</span>
+                <span>{relativeDate(article.published_at)}</span>
+                <span>·</span>
+                <span>{readTime(article.content)}</span>
+                <span className="ml-auto text-[#38bdf8] font-semibold group-hover:translate-x-1 transition-transform">
+                  Read Article →
+                </span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      ) : (
+        /* ── Standard Card Layout ── */
+        <div
+          id={`article-card-${article.article_id}`}
+          onClick={openArticle}
+          className="group relative flex flex-col bg-[#0f172a]/60 backdrop-blur-md border border-[rgba(56,189,248,0.1)] rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:border-[rgba(56,189,248,0.3)] hover:shadow-[0_8px_32px_rgba(56,189,248,0.08)] hover:-translate-y-0.5"
+        >
+          {/* Cover image banner */}
+          <div className="relative h-36 w-full overflow-hidden">
+            <img
+              src={getCoverImage(article.tags, article.title)}
+              alt=""
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a] via-[#0f172a]/40 to-transparent" />
+          </div>
+
+          {/* Body */}
+          <div className="p-5 flex flex-col flex-grow gap-3">
+            {/* Tags */}
+            <div className="flex flex-wrap gap-1.5">
+              {tags.slice(0, 3).map((tag) => (
+                <span key={tag.tag_id} className={`text-[10px] font-semibold italic px-2 py-0.5 rounded-full ${tagClass(tag.name)}`}>
+                  {tag.name}
+                </span>
+              ))}
+            </div>
+
+            {/* Title */}
+            <h3 className="article-title text-[15px] font-bold italic leading-snug text-[#e2e8f0] group-hover:text-[#38bdf8] transition-colors line-clamp-2">
+              {article.title}
+            </h3>
+
+            {/* Excerpt */}
+            {excerpt && (
+              <p className="text-sm italic text-[#64748b] line-clamp-3 leading-relaxed flex-grow">
+                {excerpt}
+              </p>
+            )}
+
+            {/* Meta */}
+            <div className="flex items-center justify-between pt-2 border-t border-[rgba(56,189,248,0.07)]">
+              {/* Author */}
+              <div className="flex items-center gap-1.5 min-w-0">
+                <div className="w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] font-black text-[#020617]"
+                  style={{ background: "linear-gradient(135deg,#38bdf8,#818cf8)" }}>
+                  {authorDisplay[0]?.toUpperCase() ?? "U"}
+                </div>
+                <span className="text-xs italic text-[#94a3b8] truncate max-w-[100px]">{authorDisplay}</span>
+                {article.is_verified_author && (
+                  <svg className="w-3.5 h-3.5 text-[#38bdf8] flex-shrink-0" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" strokeWidth="2" stroke="currentColor" fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </div>
+
+              {/* Right side: read time + actions */}
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <span className="text-[10px] italic text-[#475569]">{readTime(article.content)}</span>
+                <button onClick={handleLike} disabled={loading}
+                  className={`p-1.5 rounded-lg transition-all hover:bg-[#1e293b] ${isLiked ? "text-rose-400" : "text-[#475569] hover:text-[#e2e8f0]"}`}
+                  title="Like">
+                  <svg className="w-3.5 h-3.5" fill={isLiked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 8.25c0-2.485-2.099-4.5-4.688-4.5-1.935 0-3.597 1.126-4.312 2.733-.715-1.607-2.377-2.733-4.313-2.733C5.1 3.75 3 5.765 3 8.25c0 7.22 9 12 9 12s9-4.78 9-12z" />
+                  </svg>
+                </button>
+                <button onClick={handleSave} disabled={loading}
+                  className={`p-1.5 rounded-lg transition-all hover:bg-[#1e293b] ${isSaved ? "text-[#38bdf8]" : "text-[#475569] hover:text-[#e2e8f0]"}`}
+                  title="Save">
+                  <svg className="w-3.5 h-3.5" fill={isSaved ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            {/* Date + views + read link */}
+            <div className="flex items-center justify-between text-[10px] italic text-[#475569]">
+              <span>{relativeDate(article.published_at)}</span>
+              <div className="flex items-center gap-3">
+                <span>{article.view_count.toLocaleString()} views</span>
+                <span
+                  className="text-[#38bdf8] hover:text-[#7dd3fc] font-semibold transition-colors flex items-center gap-0.5"
+                >
+                  Read →
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Article Detail Modal ── */}
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-          style={{ background: "rgba(2,6,23,0.85)", backdropFilter: "blur(8px)" }}
+          style={{ background: "rgba(2,6,23,0.3)", backdropFilter: "blur(4px)" }}
           onClick={closeArticle}>
           <div
-            className="relative w-full max-w-2xl max-h-[85vh] bg-[#0f172a] border border-[rgba(56,189,248,0.2)] rounded-2xl overflow-hidden shadow-2xl flex flex-col"
+            className="relative w-full max-w-2xl max-h-[85vh] bg-[#0f172a]/70 backdrop-blur-xl border border-[rgba(56,189,248,0.25)] rounded-2xl overflow-hidden shadow-2xl flex flex-col"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal cover image */}
@@ -342,7 +403,7 @@ export function ArticleCard({ article, onInteractionChange }: ArticleCardProps) 
             </div>
 
             {/* Modal footer */}
-            <div className="flex items-center justify-between p-4 border-t border-[rgba(56,189,248,0.1)] bg-[#020617]/50">
+            <div className="flex items-center justify-between p-4 border-t border-[rgba(56,189,248,0.1)] bg-[#020617]/30">
               <span className="text-xs italic text-[#475569]">{article.view_count.toLocaleString()} views</span>
               <div className="flex items-center gap-2">
                 <button onClick={handleLike} disabled={loading}
